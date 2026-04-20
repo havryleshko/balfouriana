@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${BALFOURIANA_DB_URL}
+    username: ${BALFOURIANA_DB_USERNAME}
+    password: ${BALFOURIANA_DB_PASSWORD}
+    driver-class-name: ${BALFOURIANA_DB_DRIVER:org.postgresql.Driver}
+
+logging:
+  level:
+    root: INFO

@@ -181,3 +181,25 @@ When editing this codebase:
 - Keep the Spring Boot app minimal until we have the first paying customer.  
 - If something feels clever, delete it.  
 - Every rule, template, and audit decision must be traceable to an official FCA or ESMA source with date. 
+
+## Recommended structure - balanced.
+
+balforiana/
+├── src/
+│   ├── main/
+│   │   ├── kotlin/
+│   │   │   └── com/balforiana/
+│   │   │       ├── BalforianaApplication.kt
+│   │   │       ├── config/
+│   │   │       ├── domain/           ← Core models + business rules
+│   │   │       ├── service/          ← Business logic (simpler than application/)
+│   │   │       ├── repository/       ← Database access
+│   │   │       └── api/              ← REST controllers
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       └── db/migration/
+│   └── test/
+│       └── kotlin/...
+├── build.gradle.kts
+├── settings.gradle.kts
+└── README.md
