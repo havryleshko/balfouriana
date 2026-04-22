@@ -3,6 +3,11 @@ spring:
     activate:
       on-profile: local
 
+balfouriana:
+  ingestion:
+    drop-zone:
+      enabled: false
+
 logging:
   level:
     root: INFO

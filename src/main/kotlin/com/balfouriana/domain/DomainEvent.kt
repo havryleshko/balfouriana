@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 @JsonSubTypes(
     JsonSubTypes.Type(value = IngestionAcceptedEvent::class, name = "ingestionAccepted"),
-    JsonSubTypes.Type(value = PipelineCheckpointEvent::class, name = "pipelineCheckpoint")
+    JsonSubTypes.Type(value = PipelineCheckpointEvent::class, name = "pipelineCheckpoint"),
+    JsonSubTypes.Type(value = FileReceivedEvent::class, name = "fileReceived")
 )
 sealed interface DomainEvent {
     val metadata: EventMetadata

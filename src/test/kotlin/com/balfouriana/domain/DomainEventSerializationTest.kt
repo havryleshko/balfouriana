@@ -31,4 +31,26 @@ class DomainEventSerializationTest {
 
         assertEquals(event, decoded)
     }
+
+    @Test
+    fun `serializes and deserializes file received event`() {
+        val event = FileReceivedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "rest-ingest",
+                occurredAt = Instant.parse("2026-04-20T11:00:00Z"),
+                schemaVersion = "ingestion.receive.v1",
+                regimes = emptySet()
+            ),
+            channel = IngestionChannel.REST,
+            artifactId = UUID.randomUUID(),
+            originalFilename = "trades.csv",
+            storedRelativePath = "received/artifact_trades.csv",
+            byteSize = 42
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
 }

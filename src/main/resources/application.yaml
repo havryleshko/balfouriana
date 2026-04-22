@@ -1,6 +1,10 @@
 spring:
   application:
     name: balfouriana
+  servlet:
+    multipart:
+      max-file-size: 52MB
+      max-request-size: 52MB
   datasource:
     url: ${BALFOURIANA_DB_URL:jdbc:h2:mem:balfouriana;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false}
     username: ${BALFOURIANA_DB_USERNAME:sa}
@@ -35,3 +39,13 @@ logging:
 balfouriana:
   runtime:
     service-identity: ${BALFOURIANA_SERVICE_IDENTITY:balfouriana-core}
+  ingestion:
+    root: ${BALFOURIANA_INGEST_ROOT:./data/ingest}
+    receive-schema-version: ingestion.receive.v1
+    rest:
+      max-file-size-bytes: ${BALFOURIANA_INGEST_MAX_BYTES:52428800}
+      api-key: ${BALFOURIANA_INGESTION_API_KEY:}
+    drop-zone:
+      enabled: ${BALFOURIANA_DROP_ZONE_ENABLED:true}
+      poll-interval-ms: ${BALFOURIANA_DROP_ZONE_POLL_MS:5000}
+      stability-check-ms: ${BALFOURIANA_DROP_ZONE_STABILITY_MS:2000}
