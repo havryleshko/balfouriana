@@ -2,6 +2,7 @@ package com.balfouriana.service
 
 import com.balfouriana.domain.IngestionChannel
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -52,5 +53,35 @@ class IngestionReceiveServiceIntegrationTest {
             Int::class.java
         ) ?: 0
         assertTrue(after > before)
+    }
+
+    @Test
+    fun `receive maps valid csv rows and rejects invalid rows`() {
+        val correlationId = UUID.randomUUID()
+        val payload = """
+            record_type,trade_id,instrument_id,trade_date,quantity,price
+            TRADE,T-1,GB00B03MLX29,2026-04-22,100,10.3
+            TRADE,T-2,GB00B03MLX29,22-04-2026,100,10.3
+        """.trimIndent().toByteArray()
+        ingestionReceiveService.receive(
+            bytes = payload,
+            originalFilename = "trades.csv",
+            channel = IngestionChannel.REST,
+            correlationId = correlationId
+        )
+
+        val mappedCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'CanonicalRecordMappedEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
+        val rejectedCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'ParseRecordRejectedEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
+
+        assertEquals(1, mappedCount)
+        assertEquals(1, rejectedCount)
     }
 }

@@ -53,4 +53,32 @@ class DomainEventSerializationTest {
         val decoded: DomainEvent = mapper.readValue(payload)
         assertEquals(event, decoded)
     }
+
+    @Test
+    fun `serializes and deserializes canonical mapped event`() {
+        val event = CanonicalRecordMappedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "rest-ingest",
+                occurredAt = Instant.parse("2026-04-22T11:00:00Z"),
+                schemaVersion = "ingestion.parse.v1",
+                regimes = emptySet()
+            ),
+            artifactId = UUID.randomUUID(),
+            envelope = SourceRecordEnvelope(
+                sourceId = "rest-ingest",
+                fileId = UUID.randomUUID(),
+                recordIndex = 1,
+                ingestTimestamp = Instant.parse("2026-04-22T10:59:59Z"),
+                format = IngestionFileFormat.CSV,
+                schemaHint = null
+            ),
+            recordType = CanonicalRecordType.TRADE,
+            canonicalFields = mapOf("trade_id" to "T-1")
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
 }

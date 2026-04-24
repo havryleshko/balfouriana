@@ -7,6 +7,7 @@ import com.balfouriana.domain.IngestionChannel
 import com.balfouriana.domain.RawIngestionArtifact
 import com.balfouriana.repository.EventStoreRepository
 import com.balfouriana.repository.IngestionArtifactRepository
+import com.balfouriana.service.parsing.IngestionParseAndMapService
 import org.springframework.stereotype.Service
 import java.nio.file.Files
 import java.nio.file.Path
@@ -18,7 +19,8 @@ import java.util.UUID
 class DefaultIngestionReceiveService(
     private val properties: IngestionProperties,
     private val eventStoreRepository: EventStoreRepository,
-    private val ingestionArtifactRepository: IngestionArtifactRepository
+    private val ingestionArtifactRepository: IngestionArtifactRepository,
+    private val ingestionParseAndMapService: IngestionParseAndMapService
 ) : IngestionReceiveService {
 
     override fun receive(
@@ -90,7 +92,7 @@ class DefaultIngestionReceiveService(
             throw e
         }
 
-        return RawIngestionArtifact(
+        val artifact = RawIngestionArtifact(
             artifactId = artifactId,
             correlationId = correlationId,
             channel = channel,
@@ -99,6 +101,8 @@ class DefaultIngestionReceiveService(
             byteSize = bytes.size.toLong(),
             receivedAt = receivedAt
         )
+        ingestionParseAndMapService.process(artifact, bytes)
+        return artifact
     }
 
     private fun sanitizeFilename(name: String): String {
