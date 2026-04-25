@@ -100,7 +100,13 @@ class IngestionReceiveServiceIntegrationTest {
         assertNotNull(rejectedPayload)
         assertTrue(mappedPayload!!.contains("\"checksumSha256\""))
         assertTrue(mappedPayload.contains("\"ingestionChannel\":\"REST\""))
+        assertTrue(mappedPayload.contains("\"sourceSystem\":\"rest-ingest\""))
+        assertTrue(mappedPayload.contains("\"originalFileName\":\"trades.csv\""))
+        assertTrue(mappedPayload.contains("\"contentType\":\"text/csv\""))
+        assertTrue(mappedPayload.contains("\"format\":\"CSV\""))
         assertTrue(rejectedPayload!!.contains("\"checksumSha256\""))
+        assertTrue(rejectedPayload.contains("\"sourceSystem\":\"rest-ingest\""))
+        assertTrue(rejectedPayload.contains("\"format\":\"CSV\""))
     }
 
     @Test

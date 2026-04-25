@@ -30,7 +30,6 @@ class DefaultIngestionReceiveService(
         channel: IngestionChannel,
         correlationId: UUID
     ): RawIngestionArtifact {
-        require(bytes.isNotEmpty()) { "empty file" }
         require(bytes.size <= properties.rest.maxFileSizeBytes) { "file exceeds max size" }
 
         val root = Path.of(properties.root).toAbsolutePath().normalize()

@@ -35,6 +35,24 @@ class IngestionParseAndMapService(
             bytes = bytes
         )
         val batch = parserRouter.route(request)
+        if (batch.outcomes.isEmpty()) {
+            eventStoreRepository.append(
+                rejectedEvent(
+                    artifact = artifact,
+                    format = batch.format,
+                    rejection = ParserRejection(
+                        recordIndex = 0,
+                        code = com.balfouriana.domain.ParseRejectionCode.PARSER_FAILURE,
+                        reason = "Parser produced no outcomes",
+                        rawRecord = null
+                    ),
+                    schemaHint = request.schemaHint
+                )
+            )
+            meterRegistry.counter("balfouriana.ingestion.parse.rows.rejected", "format", batch.format.name).increment()
+            logger.warn("parse_complete fileId={} sourceId={} format={} rowsProcessed=0 rowsEmitted=0 rowsRejected=1 reason=no_outcomes", artifact.artifactId, sourceIdFor(artifact), batch.format)
+            return
+        }
 
         var emitted = 0
         var rejected = 0
@@ -145,7 +163,7 @@ class IngestionParseAndMapService(
         return EventMetadata(
             eventId = UUID.randomUUID(),
             correlationId = artifact.correlationId,
-            sourceSystem = sourceIdFor(artifact),
+            sourceSystem = artifact.sourceSystem,
             occurredAt = Instant.now(),
             schemaVersion = schemaVersion,
             regimes = emptySet()

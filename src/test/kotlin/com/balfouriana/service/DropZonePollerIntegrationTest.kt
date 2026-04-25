@@ -1,6 +1,7 @@
 package com.balfouriana.service
 
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -55,5 +56,26 @@ class DropZonePollerIntegrationTest {
             ) ?: 0
         }
         assertTrue(after > before, "expected FileReceivedEvent within timeout")
+    }
+
+    @Test
+    fun `drop zone emits rejection for empty payload`() {
+        val incoming = ingestRoot.resolve("incoming").resolve("empty-${UUID.randomUUID()}.csv")
+        Files.write(incoming, byteArrayOf())
+        val beforeRejected = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where event_type = 'ParseRecordRejectedEvent'",
+            Int::class.java
+        ) ?: 0
+        var afterRejected = beforeRejected
+        var waited = 0
+        while (waited < 15_000 && afterRejected <= beforeRejected) {
+            Thread.sleep(200)
+            waited += 200
+            afterRejected = jdbcTemplate.queryForObject(
+                "select count(*) from event_store where event_type = 'ParseRecordRejectedEvent'",
+                Int::class.java
+            ) ?: 0
+        }
+        assertEquals(beforeRejected + 1, afterRejected)
     }
 }
