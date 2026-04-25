@@ -22,7 +22,7 @@ class XmlIngestionFormatParser : IngestionFormatParser {
                 format = IngestionFileFormat.XML,
                 outcomes = listOf(
                     ParserRecordOutcome.Rejected(
-                        ParserRejection(0, ParseRejectionCode.MALFORMED_RECORD, "Invalid XML payload", null)
+                        ParserRejection(0, ParseRejectionCode.UNDECODABLE_CONTENT, "Invalid XML payload", null)
                     )
                 )
             )
@@ -34,7 +34,7 @@ class XmlIngestionFormatParser : IngestionFormatParser {
                 format = IngestionFileFormat.XML,
                 outcomes = listOf(
                     ParserRecordOutcome.Rejected(
-                        ParserRejection(0, ParseRejectionCode.MALFORMED_RECORD, "XML payload contains no <record> nodes", null)
+                        ParserRejection(0, ParseRejectionCode.STRUCTURALLY_INVALID_RECORD, "XML payload contains no <record> nodes", null)
                     )
                 )
             )
@@ -44,7 +44,7 @@ class XmlIngestionFormatParser : IngestionFormatParser {
             val node = recordNodes.item(idx) as? Element
             if (node == null) {
                 ParserRecordOutcome.Rejected(
-                    ParserRejection(idx + 1, ParseRejectionCode.MALFORMED_RECORD, "XML record node is invalid", null)
+                    ParserRejection(idx + 1, ParseRejectionCode.STRUCTURALLY_INVALID_RECORD, "XML record node is invalid", null)
                 )
             } else {
                 val fields = mutableMapOf<String, String>()

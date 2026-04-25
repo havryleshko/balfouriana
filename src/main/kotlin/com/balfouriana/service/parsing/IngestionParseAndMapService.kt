@@ -26,7 +26,12 @@ class IngestionParseAndMapService(
         val request = ParseRequest(
             artifactId = artifact.artifactId,
             sourceId = sourceIdFor(artifact),
+            sourceSystem = artifact.sourceSystem,
+            channel = artifact.channel,
             originalFilename = artifact.originalFilename,
+            receivedAt = artifact.receivedAt,
+            fileSizeBytes = artifact.byteSize,
+            payloadChecksumSha256 = artifact.payloadChecksumSha256,
             bytes = bytes
         )
         val batch = parserRouter.route(request)
@@ -45,10 +50,16 @@ class IngestionParseAndMapService(
                                 artifactId = artifact.artifactId,
                                 envelope = SourceRecordEnvelope(
                                     sourceId = sourceIdFor(artifact),
+                                    sourceSystem = artifact.sourceSystem,
+                                    ingestionChannel = artifact.channel,
                                     fileId = artifact.artifactId,
+                                    originalFileName = artifact.originalFilename,
                                     recordIndex = outcome.record.recordIndex,
-                                    ingestTimestamp = artifact.receivedAt,
+                                    receivedAt = artifact.receivedAt,
                                     format = batch.format,
+                                    contentType = contentTypeFor(batch.format),
+                                    fileSizeBytes = artifact.byteSize,
+                                    checksumSha256 = artifact.payloadChecksumSha256,
                                     schemaHint = request.schemaHint
                                 ),
                                 recordType = mapping.recordType,
@@ -112,10 +123,16 @@ class IngestionParseAndMapService(
             artifactId = artifact.artifactId,
             envelope = SourceRecordEnvelope(
                 sourceId = sourceIdFor(artifact),
+                sourceSystem = artifact.sourceSystem,
+                ingestionChannel = artifact.channel,
                 fileId = artifact.artifactId,
+                originalFileName = artifact.originalFilename,
                 recordIndex = rejection.recordIndex,
-                ingestTimestamp = artifact.receivedAt,
+                receivedAt = artifact.receivedAt,
                 format = format,
+                contentType = contentTypeFor(format),
+                fileSizeBytes = artifact.byteSize,
+                checksumSha256 = artifact.payloadChecksumSha256,
                 schemaHint = schemaHint
             ),
             code = rejection.code,
@@ -137,8 +154,19 @@ class IngestionParseAndMapService(
 
     private fun sourceIdFor(artifact: RawIngestionArtifact): String {
         return when (artifact.channel) {
+            com.balfouriana.domain.IngestionChannel.SFTP -> "sftp-ingest"
             com.balfouriana.domain.IngestionChannel.REST -> "rest-ingest"
             com.balfouriana.domain.IngestionChannel.DROP_ZONE -> "drop-zone"
+        }
+    }
+
+    private fun contentTypeFor(format: com.balfouriana.domain.IngestionFileFormat): String {
+        return when (format) {
+            com.balfouriana.domain.IngestionFileFormat.CSV -> "text/csv"
+            com.balfouriana.domain.IngestionFileFormat.JSON -> "application/json"
+            com.balfouriana.domain.IngestionFileFormat.FIX -> "text/plain"
+            com.balfouriana.domain.IngestionFileFormat.XML -> "application/xml"
+            com.balfouriana.domain.IngestionFileFormat.UNKNOWN -> "application/octet-stream"
         }
     }
 }

@@ -8,5 +8,6 @@ data class FileReceivedEvent(
     val artifactId: UUID,
     val originalFilename: String,
     val storedRelativePath: String,
-    val byteSize: Long
+    val byteSize: Long,
+    val payloadChecksumSha256: String
 ) : DomainEvent

@@ -3,6 +3,7 @@ package com.balfouriana.service
 import com.balfouriana.domain.IngestionChannel
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -53,6 +54,7 @@ class IngestionReceiveServiceIntegrationTest {
             Int::class.java
         ) ?: 0
         assertTrue(after > before)
+        assertEquals(64, artifact.payloadChecksumSha256.length)
     }
 
     @Test
@@ -83,5 +85,39 @@ class IngestionReceiveServiceIntegrationTest {
 
         assertEquals(1, mappedCount)
         assertEquals(1, rejectedCount)
+
+        val mappedPayload = jdbcTemplate.queryForObject(
+            "select payload from event_store where correlation_id = ? and event_type = 'CanonicalRecordMappedEvent' limit 1",
+            String::class.java,
+            correlationId
+        )
+        val rejectedPayload = jdbcTemplate.queryForObject(
+            "select payload from event_store where correlation_id = ? and event_type = 'ParseRecordRejectedEvent' limit 1",
+            String::class.java,
+            correlationId
+        )
+        assertNotNull(mappedPayload)
+        assertNotNull(rejectedPayload)
+        assertTrue(mappedPayload!!.contains("\"checksumSha256\""))
+        assertTrue(mappedPayload.contains("\"ingestionChannel\":\"REST\""))
+        assertTrue(rejectedPayload!!.contains("\"checksumSha256\""))
+    }
+
+    @Test
+    fun `receive generates stable checksum for identical bytes`() {
+        val payload = "record_type,trade_id\nTRADE,T-1".toByteArray()
+        val first = ingestionReceiveService.receive(
+            bytes = payload,
+            originalFilename = "first.csv",
+            channel = IngestionChannel.REST,
+            correlationId = UUID.randomUUID()
+        )
+        val second = ingestionReceiveService.receive(
+            bytes = payload,
+            originalFilename = "second.csv",
+            channel = IngestionChannel.REST,
+            correlationId = UUID.randomUUID()
+        )
+        assertEquals(first.payloadChecksumSha256, second.payloadChecksumSha256)
     }
 }

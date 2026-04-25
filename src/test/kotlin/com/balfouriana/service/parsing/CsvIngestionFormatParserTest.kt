@@ -1,6 +1,7 @@
 package com.balfouriana.service.parsing
 
 import com.balfouriana.domain.IngestionFileFormat
+import com.balfouriana.domain.IngestionChannel
 import com.balfouriana.domain.ParseRejectionCode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -20,7 +21,12 @@ class CsvIngestionFormatParserTest {
             ParseRequest(
                 artifactId = UUID.randomUUID(),
                 sourceId = "rest-ingest",
+                sourceSystem = "rest-ingest",
+                channel = IngestionChannel.REST,
                 originalFilename = "trades.csv",
+                receivedAt = java.time.Instant.parse("2026-04-22T10:00:00Z"),
+                fileSizeBytes = payload.toByteArray().size.toLong(),
+                payloadChecksumSha256 = "abc",
                 bytes = payload.toByteArray(),
                 declaredFormat = IngestionFileFormat.CSV
             )
@@ -41,7 +47,12 @@ class CsvIngestionFormatParserTest {
             ParseRequest(
                 artifactId = UUID.randomUUID(),
                 sourceId = "rest-ingest",
+                sourceSystem = "rest-ingest",
+                channel = IngestionChannel.REST,
                 originalFilename = "trades.csv",
+                receivedAt = java.time.Instant.parse("2026-04-22T10:00:00Z"),
+                fileSizeBytes = payload.toByteArray().size.toLong(),
+                payloadChecksumSha256 = "def",
                 bytes = payload.toByteArray(),
                 declaredFormat = IngestionFileFormat.CSV
             )

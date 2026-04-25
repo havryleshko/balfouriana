@@ -7,8 +7,10 @@ data class RawIngestionArtifact(
     val artifactId: UUID,
     val correlationId: UUID,
     val channel: IngestionChannel,
+    val sourceSystem: String,
     val originalFilename: String,
     val storedRelativePath: String,
     val byteSize: Long,
-    val receivedAt: Instant
+    val receivedAt: Instant,
+    val payloadChecksumSha256: String
 )

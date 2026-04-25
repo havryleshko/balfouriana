@@ -23,7 +23,7 @@ class CsvIngestionFormatParser : IngestionFormatParser {
                 format = IngestionFileFormat.CSV,
                 outcomes = listOf(
                     ParserRecordOutcome.Rejected(
-                        ParserRejection(0, ParseRejectionCode.MALFORMED_RECORD, "CSV file is empty", null)
+                        ParserRejection(0, ParseRejectionCode.EMPTY_PAYLOAD, "CSV file is empty", null)
                     )
                 )
             )
@@ -35,7 +35,7 @@ class CsvIngestionFormatParser : IngestionFormatParser {
                 format = IngestionFileFormat.CSV,
                 outcomes = listOf(
                     ParserRecordOutcome.Rejected(
-                        ParserRejection(0, ParseRejectionCode.MALFORMED_RECORD, "CSV header row is invalid", lines.first())
+                        ParserRejection(0, ParseRejectionCode.STRUCTURALLY_INVALID_RECORD, "CSV header row is invalid", lines.first())
                     )
                 )
             )
@@ -49,7 +49,7 @@ class CsvIngestionFormatParser : IngestionFormatParser {
                 outcomes += ParserRecordOutcome.Rejected(
                     ParserRejection(
                         recordIndex,
-                        ParseRejectionCode.MALFORMED_RECORD,
+                        ParseRejectionCode.STRUCTURALLY_INVALID_RECORD,
                         "CSV row column count ${values.size} does not match header ${headers.size}",
                         rawLine
                     )

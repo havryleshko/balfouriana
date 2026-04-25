@@ -20,7 +20,7 @@ class JsonIngestionFormatParser(
                 format = IngestionFileFormat.JSON,
                 outcomes = listOf(
                     ParserRecordOutcome.Rejected(
-                        ParserRejection(0, ParseRejectionCode.MALFORMED_RECORD, "Invalid JSON payload", raw)
+                        ParserRejection(0, ParseRejectionCode.UNDECODABLE_CONTENT, "Invalid JSON payload", raw)
                     )
                 )
             )

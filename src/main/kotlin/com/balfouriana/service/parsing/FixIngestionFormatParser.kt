@@ -21,7 +21,7 @@ class FixIngestionFormatParser : IngestionFormatParser {
                 format = IngestionFileFormat.FIX,
                 outcomes = listOf(
                     ParserRecordOutcome.Rejected(
-                        ParserRejection(0, ParseRejectionCode.MALFORMED_RECORD, "FIX payload is empty", null)
+                        ParserRejection(0, ParseRejectionCode.EMPTY_PAYLOAD, "FIX payload is empty", null)
                     )
                 )
             )
@@ -46,7 +46,7 @@ class FixIngestionFormatParser : IngestionFormatParser {
                 ParserRecordOutcome.Rejected(
                     ParserRejection(
                         recordIndex = index + 1,
-                        code = ParseRejectionCode.MALFORMED_RECORD,
+                        code = ParseRejectionCode.STRUCTURALLY_INVALID_RECORD,
                         reason = "FIX row missing required tags or unsupported message type",
                         rawRecord = line
                     )

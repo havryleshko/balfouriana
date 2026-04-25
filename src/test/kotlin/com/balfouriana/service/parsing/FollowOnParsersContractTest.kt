@@ -1,6 +1,8 @@
 package com.balfouriana.service.parsing
 
 import com.balfouriana.domain.IngestionFileFormat
+import com.balfouriana.domain.IngestionChannel
+import com.balfouriana.domain.ParseRejectionCode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,7 +20,8 @@ class FollowOnParsersContractTest {
         val happy = """[{"record_type":"TRADE","trade_id":"T-1","instrument_id":"GB00B03MLX29"}]"""
         val malformed = """{"record_type":"TRADE""""
         assertTrue(parseSingle(jsonParser, "data.json", happy) is ParserRecordOutcome.Parsed)
-        assertTrue(parseSingle(jsonParser, "data.json", malformed) is ParserRecordOutcome.Rejected)
+        val rejected = parseSingle(jsonParser, "data.json", malformed) as ParserRecordOutcome.Rejected
+        assertEquals(ParseRejectionCode.UNDECODABLE_CONTENT, rejected.rejection.code)
     }
 
     @Test
@@ -47,7 +50,12 @@ class FollowOnParsersContractTest {
             ParseRequest(
                 artifactId = UUID.randomUUID(),
                 sourceId = "rest-ingest",
+                sourceSystem = "rest-ingest",
+                channel = IngestionChannel.REST,
                 originalFilename = fileName,
+                receivedAt = java.time.Instant.parse("2026-04-22T10:00:00Z"),
+                fileSizeBytes = payload.toByteArray().size.toLong(),
+                payloadChecksumSha256 = "abc",
                 bytes = payload.toByteArray(),
                 declaredFormat = format
             )

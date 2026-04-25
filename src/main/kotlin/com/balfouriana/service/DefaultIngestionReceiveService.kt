@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
+import java.security.MessageDigest
 import java.time.Instant
 import java.util.UUID
 
@@ -56,9 +57,11 @@ class DefaultIngestionReceiveService(
 
         val receivedAt = Instant.now()
         val sourceSystem = when (channel) {
+            IngestionChannel.SFTP -> "sftp-ingest"
             IngestionChannel.REST -> "rest-ingest"
             IngestionChannel.DROP_ZONE -> "drop-zone"
         }
+        val payloadChecksumSha256 = sha256Hex(bytes)
         val eventId = UUID.randomUUID()
         val metadata = EventMetadata(
             eventId = eventId,
@@ -74,7 +77,8 @@ class DefaultIngestionReceiveService(
             artifactId = artifactId,
             originalFilename = originalFilename,
             storedRelativePath = relativeStored,
-            byteSize = bytes.size.toLong()
+            byteSize = bytes.size.toLong(),
+            payloadChecksumSha256 = payloadChecksumSha256
         )
         try {
             ingestionArtifactRepository.insert(
@@ -96,10 +100,12 @@ class DefaultIngestionReceiveService(
             artifactId = artifactId,
             correlationId = correlationId,
             channel = channel,
+            sourceSystem = sourceSystem,
             originalFilename = originalFilename,
             storedRelativePath = relativeStored,
             byteSize = bytes.size.toLong(),
-            receivedAt = receivedAt
+            receivedAt = receivedAt,
+            payloadChecksumSha256 = payloadChecksumSha256
         )
         ingestionParseAndMapService.process(artifact, bytes)
         return artifact
@@ -109,5 +115,10 @@ class DefaultIngestionReceiveService(
         val base = Path.of(name).fileName.toString().ifBlank { "unnamed" }
         val cleaned = base.replace(Regex("[^a-zA-Z0-9._-]"), "_").take(200)
         return if (cleaned.isBlank()) "unnamed" else cleaned
+    }
+
+    private fun sha256Hex(bytes: ByteArray): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
+        return digest.joinToString(separator = "") { "%02x".format(it) }
     }
 }

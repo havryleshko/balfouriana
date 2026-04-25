@@ -1,14 +1,21 @@
 package com.balfouriana.service.parsing
 
 import com.balfouriana.domain.CanonicalRecordType
+import com.balfouriana.domain.IngestionChannel
 import com.balfouriana.domain.IngestionFileFormat
 import com.balfouriana.domain.ParseRejectionCode
+import java.time.Instant
 import java.util.UUID
 
 data class ParseRequest(
     val artifactId: UUID,
     val sourceId: String,
+    val sourceSystem: String,
+    val channel: IngestionChannel,
     val originalFilename: String,
+    val receivedAt: Instant,
+    val fileSizeBytes: Long,
+    val payloadChecksumSha256: String,
     val bytes: ByteArray,
     val declaredFormat: IngestionFileFormat? = null,
     val schemaHint: String? = null

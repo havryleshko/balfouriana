@@ -47,7 +47,8 @@ class DomainEventSerializationTest {
             artifactId = UUID.randomUUID(),
             originalFilename = "trades.csv",
             storedRelativePath = "received/artifact_trades.csv",
-            byteSize = 42
+            byteSize = 42,
+            payloadChecksumSha256 = "8f434346648f6b96df89dda901c5176b10a6d83961c116ea4a84f7df0cf2ce13"
         )
         val payload = mapper.writeValueAsString(event)
         val decoded: DomainEvent = mapper.readValue(payload)
@@ -68,10 +69,16 @@ class DomainEventSerializationTest {
             artifactId = UUID.randomUUID(),
             envelope = SourceRecordEnvelope(
                 sourceId = "rest-ingest",
+                sourceSystem = "rest-ingest",
+                ingestionChannel = IngestionChannel.REST,
                 fileId = UUID.randomUUID(),
+                originalFileName = "trades.csv",
                 recordIndex = 1,
-                ingestTimestamp = Instant.parse("2026-04-22T10:59:59Z"),
+                receivedAt = Instant.parse("2026-04-22T10:59:59Z"),
                 format = IngestionFileFormat.CSV,
+                contentType = "text/csv",
+                fileSizeBytes = 42,
+                checksumSha256 = "8f434346648f6b96df89dda901c5176b10a6d83961c116ea4a84f7df0cf2ce13",
                 schemaHint = null
             ),
             recordType = CanonicalRecordType.TRADE,
