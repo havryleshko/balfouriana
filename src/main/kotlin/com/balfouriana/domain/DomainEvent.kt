@@ -9,7 +9,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = PipelineCheckpointEvent::class, name = "pipelineCheckpoint"),
     JsonSubTypes.Type(value = FileReceivedEvent::class, name = "fileReceived"),
     JsonSubTypes.Type(value = CanonicalRecordMappedEvent::class, name = "canonicalRecordMapped"),
-    JsonSubTypes.Type(value = ParseRecordRejectedEvent::class, name = "parseRecordRejected")
+    JsonSubTypes.Type(value = ParseRecordRejectedEvent::class, name = "parseRecordRejected"),
+    JsonSubTypes.Type(value = ValidationDecisionEvent::class, name = "validationDecision"),
+    JsonSubTypes.Type(value = ValidationExceptionRaisedEvent::class, name = "validationExceptionRaised"),
+    JsonSubTypes.Type(value = CanonicalRecordValidatedEvent::class, name = "canonicalRecordValidated")
 )
 sealed interface DomainEvent {
     val metadata: EventMetadata
