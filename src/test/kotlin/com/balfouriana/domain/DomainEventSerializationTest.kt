@@ -88,4 +88,40 @@ class DomainEventSerializationTest {
         val decoded: DomainEvent = mapper.readValue(payload)
         assertEquals(event, decoded)
     }
+
+    @Test
+    fun `serializes and deserializes validation decision event`() {
+        val event = ValidationDecisionEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "validation-service",
+                occurredAt = Instant.parse("2026-04-25T11:00:00Z"),
+                schemaVersion = "validation.step2.decision.v1",
+                regimes = setOf(RegulatoryRegime.MIFID_II)
+            ),
+            artifactId = UUID.randomUUID(),
+            recordType = CanonicalRecordType.TRADE,
+            recordIndex = 1,
+            validationPack = ValidationPackVersion(
+                packId = "step2-core",
+                version = "2026.04.19",
+                effectiveFrom = Instant.parse("2026-04-19T00:00:00Z")
+            ),
+            ruleResult = ValidationRuleResult(
+                ruleId = "required.instrument_id",
+                layer = ValidationLayer.SCHEMA,
+                outcome = ValidationOutcome.PASS,
+                reasonCode = "OK",
+                message = "Field present",
+                severity = ValidationSeverity.WARNING
+            ),
+            inputFingerprint = "in",
+            outputFingerprint = "out",
+            exceptionId = null
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
 }
