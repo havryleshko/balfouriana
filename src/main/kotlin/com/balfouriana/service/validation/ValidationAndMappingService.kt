@@ -9,6 +9,7 @@ import com.balfouriana.domain.ValidationExceptionRaisedEvent
 import com.balfouriana.domain.ValidationOutcome
 import com.balfouriana.domain.ValidationSeverity
 import com.balfouriana.repository.EventStoreRepository
+import com.balfouriana.service.rules.RuleEngineService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 import java.nio.charset.StandardCharsets
@@ -23,7 +24,8 @@ class ValidationAndMappingService(
     private val instrumentEnrichmentAdapter: InstrumentEnrichmentAdapter,
     private val venueMicEnrichmentAdapter: VenueMicEnrichmentAdapter,
     private val eventStoreRepository: EventStoreRepository,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val ruleEngineService: RuleEngineService
 ) {
     fun process(event: CanonicalRecordMappedEvent): ValidationProcessingResult {
         val pack = validationPackRegistry.select(event)
@@ -110,6 +112,7 @@ class ValidationAndMappingService(
                 enrichmentMetadata = enrichmentMetadata
             )
             eventStoreRepository.append(validatedEvent)
+            ruleEngineService.process(validatedEvent)
             return ValidationProcessingResult(
                 decisionCount = finalizedDecisions.size,
                 exceptionCount = exceptionEvents.size,

@@ -14,7 +14,11 @@ class ValidationAuditQueryService(
             .filter {
                 it.eventType == "ValidationDecisionEvent" ||
                     it.eventType == "ValidationExceptionRaisedEvent" ||
-                    it.eventType == "CanonicalRecordValidatedEvent"
+                    it.eventType == "CanonicalRecordValidatedEvent" ||
+                    it.eventType == "RuleDecisionEvent" ||
+                    it.eventType == "RuleExceptionRaisedEvent" ||
+                    it.eventType == "CalculationAppliedEvent" ||
+                    it.eventType == "FilingReadyRecordEvent"
             }
     }
 }
