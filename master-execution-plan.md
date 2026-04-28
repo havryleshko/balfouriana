@@ -14,28 +14,28 @@
 - **Goal**: Get a clean, working Kotlin + Spring Boot project with proper structure and shared primitives.
 - **Key Deliverables**: Project structure, domain event contracts, basic persistence, config, logging.
 - **Dependencies**: None
-- **Status**: Not Started
+- **Status**: Completed
 
 ### Phase 2: Step 1 - Data Hand-off and Canonical Ingestion
 
 - **Goal**: Build reliable ingress that accepts fund/custodian data and normalizes it once into immutable internal events.
 - **Key Deliverables**: SFTP/REST/drop-zone ingestion, parsers (CSV first), canonical event mapping, provenance capture, malformed-input rejection flow.
 - **Dependencies**: Phase 1
-- **Status**: Not Started
+- **Status**: Completed
 
 ### Phase 3: Step 2 - Validation and Mapping
 
 - **Goal**: Validate and enrich canonical events to produce a clean, regulator-safe stream with full decision traceability.
 - **Key Deliverables**: Versioned validation packs (schema + business), enrichment adapters (LEI/instrument/venue), exception metadata, immutable validation logs.
 - **Dependencies**: Phase 2
-- **Status**: Not Started
+- **Status**: Completed
 
 ### Phase 4: Step 3 - Rule Application and Calculations
 
 - **Goal**: Apply deterministic regulatory rules and calculations for MiFID II, AIFMD II, and EMIR.
 - **Key Deliverables**: Versioned Kotlin rule sets, calculation components, filing-ready enriched events, end-to-end traceability for computed fields.
 - **Dependencies**: Phase 3
-- **Status**: Not Started
+- **Status**: In Progress
 
 ### Phase 5: Step 4 - Filing Generation and Submission
 
