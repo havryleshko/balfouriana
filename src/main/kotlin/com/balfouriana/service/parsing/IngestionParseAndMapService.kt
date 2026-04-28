@@ -5,7 +5,12 @@ import com.balfouriana.domain.EventMetadata
 import com.balfouriana.domain.ParseRecordRejectedEvent
 import com.balfouriana.domain.RawIngestionArtifact
 import com.balfouriana.domain.SourceRecordEnvelope
+import com.balfouriana.domain.ValidationExceptionEnvelope
+import com.balfouriana.domain.ValidationExceptionRaisedEvent
+import com.balfouriana.domain.ValidationPackVersion
+import com.balfouriana.domain.ValidationSeverity
 import com.balfouriana.repository.EventStoreRepository
+import com.balfouriana.service.validation.ValidationAndMappingService
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -16,6 +21,7 @@ import java.util.UUID
 class IngestionParseAndMapService(
     private val parserRouter: ParserRouter,
     private val canonicalRecordMapper: CanonicalRecordMapper,
+    private val validationAndMappingService: ValidationAndMappingService,
     private val eventStoreRepository: EventStoreRepository,
     private val meterRegistry: MeterRegistry
 ) {
@@ -84,6 +90,16 @@ class IngestionParseAndMapService(
                                 canonicalFields = mapping.canonicalFields
                             )
                             eventStoreRepository.append(event)
+                            runCatching { validationAndMappingService.process(event) }
+                                .onFailure { ex ->
+                                    logger.error("validation_runtime_failure fileId={} recordIndex={} error={}", artifact.artifactId, outcome.record.recordIndex, ex.message ?: ex::class.simpleName, ex)
+                                    eventStoreRepository.append(
+                                        validationRuntimeExceptionEvent(
+                                            event = event,
+                                            message = ex.message ?: "Validation processing failed"
+                                        )
+                                    )
+                                }
                         }
                         is MappingOutcome.Rejected -> {
                             rejected++
@@ -167,6 +183,42 @@ class IngestionParseAndMapService(
             occurredAt = Instant.now(),
             schemaVersion = schemaVersion,
             regimes = emptySet()
+        )
+    }
+
+    private fun validationRuntimeExceptionEvent(
+        event: CanonicalRecordMappedEvent,
+        message: String
+    ): ValidationExceptionRaisedEvent {
+        return ValidationExceptionRaisedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = event.metadata.correlationId,
+                sourceSystem = event.metadata.sourceSystem,
+                occurredAt = Instant.now(),
+                schemaVersion = "validation.step2.exception.runtime.v1",
+                regimes = event.metadata.regimes
+            ),
+            artifactId = event.artifactId,
+            recordType = event.recordType,
+            recordIndex = event.envelope.recordIndex,
+            validationPack = ValidationPackVersion(
+                packId = "step2-runtime",
+                version = "runtime-fallback",
+                effectiveFrom = Instant.EPOCH
+            ),
+            exception = ValidationExceptionEnvelope(
+                exceptionId = UUID.randomUUID(),
+                correlationId = event.metadata.correlationId,
+                eventId = event.metadata.eventId,
+                regime = event.metadata.regimes.firstOrNull(),
+                ruleId = "validation.runtime.failure",
+                severity = ValidationSeverity.ERROR,
+                rejectionCategory = "VALIDATION_RUNTIME",
+                reasonCode = "VALIDATION_RUNTIME_FAILURE",
+                message = message,
+                remediationHint = "Review validation runtime logs and reprocess record"
+            )
         )
     }
 

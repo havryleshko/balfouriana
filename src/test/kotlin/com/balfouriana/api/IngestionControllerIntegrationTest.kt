@@ -74,10 +74,16 @@ class IngestionControllerIntegrationTest {
         val file = MockMultipartFile("file", "trades.csv", MediaType.TEXT_PLAIN_VALUE, csv.toByteArray())
         val beforeMapped = countEvents("CanonicalRecordMappedEvent")
         val beforeRejected = countEvents("ParseRecordRejectedEvent")
+        val beforeDecision = countEvents("ValidationDecisionEvent")
+        val beforeValidationException = countEvents("ValidationExceptionRaisedEvent")
+        val beforeValidated = countEvents("CanonicalRecordValidatedEvent")
         mockMvc.perform(multipart("/ingest").file(file))
             .andExpect(status().isOk)
         assertEquals(beforeMapped + 1, countEvents("CanonicalRecordMappedEvent"))
         assertEquals(beforeRejected + 1, countEvents("ParseRecordRejectedEvent"))
+        assertEquals(beforeDecision + 6, countEvents("ValidationDecisionEvent"))
+        assertTrue(countEvents("ValidationExceptionRaisedEvent") >= beforeValidationException + 1)
+        assertEquals(beforeValidated, countEvents("CanonicalRecordValidatedEvent"))
     }
 
     @Test

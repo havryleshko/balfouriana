@@ -77,6 +77,21 @@ class IngestionReceiveServiceIntegrationTest {
             Int::class.java,
             correlationId
         ) ?: 0
+        val decisionCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'ValidationDecisionEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
+        val exceptionRaisedCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'ValidationExceptionRaisedEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
+        val validatedCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'CanonicalRecordValidatedEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
         val rejectedCount = jdbcTemplate.queryForObject(
             "select count(*) from event_store where correlation_id = ? and event_type = 'ParseRecordRejectedEvent'",
             Int::class.java,
@@ -84,6 +99,9 @@ class IngestionReceiveServiceIntegrationTest {
         ) ?: 0
 
         assertEquals(1, mappedCount)
+        assertEquals(6, decisionCount)
+        assertTrue(exceptionRaisedCount >= 1)
+        assertEquals(0, validatedCount)
         assertEquals(1, rejectedCount)
 
         val mappedPayload = jdbcTemplate.queryForObject(
@@ -125,5 +143,40 @@ class IngestionReceiveServiceIntegrationTest {
             correlationId = UUID.randomUUID()
         )
         assertEquals(first.payloadChecksumSha256, second.payloadChecksumSha256)
+    }
+
+    @Test
+    fun `receive emits validated event for clean trade payload`() {
+        val correlationId = UUID.randomUUID()
+        val payload = """
+            record_type,trade_id,instrument_id,trade_date,quantity,price,currency,venue,counterparty_lei
+            TRADE,T-1,GB00B03MLX29,2026-04-22,100,10.3,GBP,xlon,5493001KJTIIGC8Y1R12
+        """.trimIndent().toByteArray()
+        ingestionReceiveService.receive(
+            bytes = payload,
+            originalFilename = "clean-trades.csv",
+            channel = IngestionChannel.REST,
+            correlationId = correlationId
+        )
+
+        val decisionCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'ValidationDecisionEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
+        val exceptionRaisedCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'ValidationExceptionRaisedEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
+        val validatedCount = jdbcTemplate.queryForObject(
+            "select count(*) from event_store where correlation_id = ? and event_type = 'CanonicalRecordValidatedEvent'",
+            Int::class.java,
+            correlationId
+        ) ?: 0
+
+        assertEquals(6, decisionCount)
+        assertEquals(0, exceptionRaisedCount)
+        assertEquals(1, validatedCount)
     }
 }
