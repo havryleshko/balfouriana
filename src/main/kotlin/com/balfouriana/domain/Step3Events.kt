@@ -47,3 +47,40 @@ data class FilingReadyRecordEvent(
     val inputFingerprint: String,
     val outputFingerprint: String
 ) : DomainEvent
+
+enum class ConfidenceLevel {
+    HIGH,
+    MEDIUM,
+    LOW
+}
+
+enum class EscalationPriority {
+    P1_BLOCKING,
+    P2_REVIEW,
+    P3_MONITOR
+}
+
+enum class ConfidenceSourceStage {
+    STEP2_VALIDATION,
+    STEP3_RULES
+}
+
+data class ConfidenceEscalationEvaluatedEvent(
+    override val metadata: EventMetadata,
+    val artifactId: UUID,
+    val recordType: CanonicalRecordType,
+    val recordIndex: Int,
+    val sourceStage: ConfidenceSourceStage,
+    val confidenceLevel: ConfidenceLevel,
+    val escalationPriority: EscalationPriority,
+    val routingKey: String,
+    val blockingCount: Int,
+    val reviewCount: Int,
+    val sourceReasonCodes: Set<String>,
+    val sourceExceptionIds: Set<UUID>,
+    val sourcePackId: String,
+    val sourcePackVersion: String,
+    val sourceEventSchemaVersion: String,
+    val inputFingerprint: String,
+    val outputFingerprint: String
+) : DomainEvent

@@ -11,6 +11,8 @@ import com.balfouriana.domain.RegulatoryRegime
 import com.balfouriana.domain.RuleOutcome
 import com.balfouriana.domain.RuleSeverity
 import com.balfouriana.repository.EventStoreRepository
+import com.balfouriana.service.filing.SubmissionOrchestratorService
+import com.balfouriana.service.validation.ConfidenceEscalationService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 import java.nio.charset.StandardCharsets
@@ -22,7 +24,9 @@ import java.util.UUID
 class RuleEngineService(
     private val rulePackRegistry: RulePackRegistry,
     private val eventStoreRepository: EventStoreRepository,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
+    private val confidenceEscalationService: ConfidenceEscalationService,
+    private val submissionOrchestratorService: SubmissionOrchestratorService? = null
 ) {
     fun process(event: CanonicalRecordValidatedEvent): RuleEngineProcessingResult {
         val pack = rulePackRegistry.select(event)
@@ -81,6 +85,15 @@ class RuleEngineService(
                     exception = envelope
                 )
             }.forEach { eventStoreRepository.append(it) }
+            eventStoreRepository.append(
+                confidenceEscalationService.forRules(
+                    event = event,
+                    rulePack = pack.version,
+                    exceptions = exceptions,
+                    inputFingerprint = inputFingerprint,
+                    outputFingerprint = outputFingerprint
+                )
+            )
             return RuleEngineProcessingResult(
                 decisionCount = decisionEvents.size,
                 calculationCount = 0,
@@ -146,19 +159,28 @@ class RuleEngineService(
         } else {
             emptyMap()
         }
+        val filingReadyEvent = FilingReadyRecordEvent(
+            metadata = eventMetadata(event, "rules.step3.filing-ready.v1"),
+            artifactId = event.artifactId,
+            envelope = event.envelope,
+            recordType = event.recordType,
+            rulePackVersion = pack.version,
+            filingReadyFields = filingReadyFields,
+            traceMetadata = traceBase + traceAifmd,
+            inputFingerprint = inputFingerprint,
+            outputFingerprint = outputFingerprint
+        )
+        eventStoreRepository.append(filingReadyEvent)
         eventStoreRepository.append(
-            FilingReadyRecordEvent(
-                metadata = eventMetadata(event, "rules.step3.filing-ready.v1"),
-                artifactId = event.artifactId,
-                envelope = event.envelope,
-                recordType = event.recordType,
-                rulePackVersion = pack.version,
-                filingReadyFields = filingReadyFields,
-                traceMetadata = traceBase + traceAifmd,
+            confidenceEscalationService.forRules(
+                event = event,
+                rulePack = pack.version,
+                exceptions = exceptions,
                 inputFingerprint = inputFingerprint,
                 outputFingerprint = outputFingerprint
             )
         )
+        submissionOrchestratorService?.process(filingReadyEvent)
 
         return RuleEngineProcessingResult(
             decisionCount = decisionEvents.size,

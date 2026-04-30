@@ -58,3 +58,30 @@ The current test suite covers:
 - Step 3 audit chain events for AIFMD flows
 - Domain event serialization for updated Step 3 contracts
 - Deterministic output fingerprints and trace metadata checks
+
+## Frontend Demo Console
+
+The demo console lives in `frontend/` and consumes the engine APIs.
+
+1. Start backend:
+```bash
+./gradlew bootRun
+```
+2. Start frontend:
+```bash
+cd frontend
+npm install
+cp .env.example .env
+npm run dev
+```
+
+The frontend expects `ENGINE_API_BASE_URL=http://localhost:8080`.
+Local CORS for `http://localhost:3000` and `http://localhost:5173` is enabled in backend config.
+
+### Demo APIs for frontend
+
+- `GET /demo/scenarios`
+- `GET /demo/scenarios/{scenario}/{fileName}`
+- `GET /demo/runs`
+- `GET /demo/runs/{correlationId}`
+- `GET /demo/runs/{correlationId}/summary`

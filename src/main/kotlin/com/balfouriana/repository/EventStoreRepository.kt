@@ -8,4 +8,5 @@ interface EventStoreRepository {
     fun append(event: DomainEvent)
     fun findByCorrelationId(correlationId: UUID): List<PersistedEventRecord>
     fun findByOccurredAtBetween(startInclusive: Instant, endExclusive: Instant): List<PersistedEventRecord>
+    fun findByEventType(eventType: String): List<PersistedEventRecord>
 }

@@ -18,7 +18,15 @@ class ValidationAuditQueryService(
                     it.eventType == "RuleDecisionEvent" ||
                     it.eventType == "RuleExceptionRaisedEvent" ||
                     it.eventType == "CalculationAppliedEvent" ||
-                    it.eventType == "FilingReadyRecordEvent"
+                    it.eventType == "FilingReadyRecordEvent" ||
+                    it.eventType == "ConfidenceEscalationEvaluatedEvent" ||
+                    it.eventType == "FilingGenerationRequestedEvent" ||
+                    it.eventType == "FilingGeneratedEvent" ||
+                    it.eventType == "FilingGenerationFailedEvent" ||
+                    it.eventType == "FilingSubmissionRequestedEvent" ||
+                    it.eventType == "FilingSubmittedEvent" ||
+                    it.eventType == "FilingSubmissionFailedEvent" ||
+                    it.eventType == "FilingAcknowledgementReceivedEvent"
             }
     }
 }

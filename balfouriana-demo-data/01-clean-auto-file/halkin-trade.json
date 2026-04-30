@@ -1,0 +1,59 @@
+[
+  {
+    "record_type": "TRADE",
+    "trade_id": "HALKIN-T-20260430-001",
+    "instrument_id": "GB00BH4HKS39",
+    "trade_date": "2026-04-30",
+    "quantity": "200000",
+    "price": "0.7250",
+    "currency": "GBP",
+    "venue": "XLON",
+    "buyer_lei": "2138001HALKIN00FAM12",
+    "seller_lei": "W22LROWP2IHZNBB6K528",
+    "decision_maker_lei": "2138001HALKIN00DM345",
+    "execution_actor_type": "HUMAN",
+    "venue_code": "XLON",
+    "otc_indicator": "N",
+    "waiver_indicator": "N",
+    "short_selling_indicator": "N",
+    "commodity_derivative_indicator": "N",
+    "price_notation": "MONETARY",
+    "price_currency": "GBP"
+  },
+  {
+    "record_type": "POSITION",
+    "position_id": "HALKIN-P-20260430-001",
+    "instrument_id": "GB00BH4HKS39",
+    "position_date": "2026-04-30",
+    "quantity": "1450000",
+    "aifmd_nav": "200000000",
+    "aifmd_commitment_exposure": "240000000",
+    "aifmd_gross_exposure": "280000000",
+    "aifmd_fund_structure": "OPEN_ENDED",
+    "aifmd_delegated_nav": "50000000",
+    "aifmd_total_nav": "200000000",
+    "aifmd_internal_fte": "4",
+    "aifmd_delegated_fte": "12",
+    "aifmd_lmt_used": "N",
+    "aifmd_lmt_limit_amount": "0",
+    "aifmd_largest_borrower_exposure": "3000000",
+    "aifmd_total_loan_exposure": "20000000",
+    "aifmd_retained_amount": "600000",
+    "aifmd_securitized_total": "10000000"
+  },
+  {
+    "record_type": "CASH_MOVEMENT",
+    "cash_id": "HALKIN-C-20260430-001",
+    "currency": "GBP",
+    "amount": "-145000",
+    "value_date": "2026-05-04",
+    "counterparty_lei": "W22LROWP2IHZNBB6K528"
+  },
+  {
+    "record_type": "CORPORATE_ACTION",
+    "action_id": "HALKIN-CA-20260430-001",
+    "instrument_id": "GB0007980591",
+    "action_type": "DIVIDEND",
+    "effective_date": "2026-04-30"
+  }
+]

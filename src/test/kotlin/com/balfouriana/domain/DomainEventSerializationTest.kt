@@ -279,4 +279,89 @@ class DomainEventSerializationTest {
         val decoded: DomainEvent = mapper.readValue(payload)
         assertEquals(event, decoded)
     }
+
+    @Test
+    fun `serializes and deserializes confidence escalation evaluated event`() {
+        val event = ConfidenceEscalationEvaluatedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "rules-service",
+                occurredAt = Instant.parse("2026-04-30T12:00:00Z"),
+                schemaVersion = "confidence.escalation.v1",
+                regimes = setOf(RegulatoryRegime.AIFMD_II)
+            ),
+            artifactId = UUID.randomUUID(),
+            recordType = CanonicalRecordType.TRADE,
+            recordIndex = 1,
+            sourceStage = ConfidenceSourceStage.STEP3_RULES,
+            confidenceLevel = ConfidenceLevel.MEDIUM,
+            escalationPriority = EscalationPriority.P2_REVIEW,
+            routingKey = "AIFMD_II.CALCULATION.P2_REVIEW",
+            blockingCount = 0,
+            reviewCount = 1,
+            sourceReasonCodes = setOf("AIFMD_FUND_STRUCTURE_UNKNOWN"),
+            sourceExceptionIds = setOf(UUID.randomUUID()),
+            sourcePackId = "step3-aifmd-annex-iv-calcs",
+            sourcePackVersion = "2026.04.30",
+            sourceEventSchemaVersion = "rules.step3.exception.v1",
+            inputFingerprint = "in",
+            outputFingerprint = "out"
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
+
+    @Test
+    fun `serializes and deserializes filing generated event`() {
+        val event = FilingGeneratedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "step4-service",
+                occurredAt = Instant.parse("2026-05-01T11:00:00Z"),
+                schemaVersion = "filing.step4.gen.ok.v1",
+                regimes = setOf(RegulatoryRegime.MIFID_II)
+            ),
+            artifactId = UUID.randomUUID(),
+            sourceFilingReadyEventId = UUID.randomUUID(),
+            sourceFilingReadyFingerprint = "fp",
+            recordType = CanonicalRecordType.TRADE,
+            filingTemplateId = "step4-mifid-xml",
+            filingTemplateVersion = "2026.05.01",
+            filingOutputFormat = FilingOutputFormat.XML,
+            outputFileName = "x.xml",
+            outputChecksumSha256 = "abc",
+            outputSizeBytes = 100
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
+
+    @Test
+    fun `serializes and deserializes filing acknowledgement event`() {
+        val event = FilingAcknowledgementReceivedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "step4-ack",
+                occurredAt = Instant.parse("2026-05-01T11:05:00Z"),
+                schemaVersion = "filing.step4.ack.rcv.v1",
+                regimes = setOf(RegulatoryRegime.EMIR)
+            ),
+            submissionId = UUID.randomUUID(),
+            correlationLinked = true,
+            linkedCorrelationId = UUID.randomUUID(),
+            channel = "SFTP",
+            acknowledgementStatus = FilingAcknowledgementStatus.ACK,
+            externalReference = "ref",
+            reasonCode = null,
+            message = null
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
 }

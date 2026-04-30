@@ -76,6 +76,16 @@ class JdbcEventStoreRepository(
         return jdbcTemplate.query(sql, params) { rs, _ -> mapRecord(rs) }
     }
 
+    override fun findByEventType(eventType: String): List<PersistedEventRecord> {
+        val sql = """
+            select event_id, correlation_id, event_type, source_system, schema_version, regimes, occurred_at, payload, created_at
+            from event_store
+            where event_type = :eventType
+            order by occurred_at asc
+        """.trimIndent()
+        return jdbcTemplate.query(sql, MapSqlParameterSource("eventType", eventType)) { rs, _ -> mapRecord(rs) }
+    }
+
     private fun mapRecord(rs: ResultSet): PersistedEventRecord {
         val regimesRaw = rs.getString("regimes").orEmpty()
         val regimes = if (regimesRaw.isBlank()) emptySet() else regimesRaw.split(",").map { RegulatoryRegime.valueOf(it) }.toSet()

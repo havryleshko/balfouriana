@@ -22,18 +22,21 @@ import java.util.UUID
 
 class ValidationAndMappingServiceTest {
     private val repository = InMemoryEventStoreRepository()
+    private val mapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).findAndRegisterModules()
     private val service = ValidationAndMappingService(
         validationPackRegistry = ValidationPackRegistry(),
         leiEnrichmentAdapter = LeiEnrichmentAdapter(),
         instrumentEnrichmentAdapter = InstrumentEnrichmentAdapter(),
         venueMicEnrichmentAdapter = VenueMicEnrichmentAdapter(),
         eventStoreRepository = repository,
-        objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).findAndRegisterModules(),
+        objectMapper = mapper,
         ruleEngineService = RuleEngineService(
             rulePackRegistry = RulePackRegistry(),
             eventStoreRepository = repository,
-            objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).findAndRegisterModules()
-        )
+            objectMapper = mapper,
+            confidenceEscalationService = ConfidenceEscalationService(mapper)
+        ),
+        confidenceEscalationService = ConfidenceEscalationService(mapper)
     )
 
     @Test
@@ -160,5 +163,9 @@ private class InMemoryEventStoreRepository : EventStoreRepository {
         endExclusive: Instant
     ): List<PersistedEventRecord> {
         return records.filter { it.occurredAt >= startInclusive && it.occurredAt < endExclusive }
+    }
+
+    override fun findByEventType(eventType: String): List<PersistedEventRecord> {
+        return records.filter { it.eventType == eventType }
     }
 }

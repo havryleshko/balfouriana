@@ -1,0 +1,126 @@
+body {
+  font-family: Inter, Arial, sans-serif;
+  margin: 0;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 12px;
+}
+
+p {
+  margin: 0 0 16px;
+}
+
+.card {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.scenario-card {
+  background: #0b1220;
+  border: 1px solid #243244;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+button {
+  width: 100%;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.upload-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  border-bottom: 1px solid #334155;
+  padding: 8px;
+  font-size: 13px;
+}
+
+.status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-pass {
+  background: #14532d;
+  color: #bbf7d0;
+}
+
+.status-review {
+  background: #78350f;
+  color: #fde68a;
+}
+
+.status-blocking {
+  background: #7f1d1d;
+  color: #fecaca;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.timeline {
+  padding-left: 18px;
+  margin: 0;
+}
+
+.timeline li {
+  margin-bottom: 8px;
+}
+
+.error {
+  margin-bottom: 12px;
+  background: #7f1d1d;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  padding: 10px;
+}

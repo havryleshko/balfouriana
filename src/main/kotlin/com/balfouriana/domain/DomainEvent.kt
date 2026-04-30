@@ -16,7 +16,15 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = RuleDecisionEvent::class, name = "ruleDecision"),
     JsonSubTypes.Type(value = RuleExceptionRaisedEvent::class, name = "ruleExceptionRaised"),
     JsonSubTypes.Type(value = CalculationAppliedEvent::class, name = "calculationApplied"),
-    JsonSubTypes.Type(value = FilingReadyRecordEvent::class, name = "filingReadyRecord")
+    JsonSubTypes.Type(value = FilingReadyRecordEvent::class, name = "filingReadyRecord"),
+    JsonSubTypes.Type(value = ConfidenceEscalationEvaluatedEvent::class, name = "confidenceEscalationEvaluated"),
+    JsonSubTypes.Type(value = FilingGenerationRequestedEvent::class, name = "filingGenerationRequested"),
+    JsonSubTypes.Type(value = FilingGeneratedEvent::class, name = "filingGenerated"),
+    JsonSubTypes.Type(value = FilingGenerationFailedEvent::class, name = "filingGenerationFailed"),
+    JsonSubTypes.Type(value = FilingSubmissionRequestedEvent::class, name = "filingSubmissionRequested"),
+    JsonSubTypes.Type(value = FilingSubmittedEvent::class, name = "filingSubmitted"),
+    JsonSubTypes.Type(value = FilingSubmissionFailedEvent::class, name = "filingSubmissionFailed"),
+    JsonSubTypes.Type(value = FilingAcknowledgementReceivedEvent::class, name = "filingAcknowledgementReceived")
 )
 sealed interface DomainEvent {
     val metadata: EventMetadata

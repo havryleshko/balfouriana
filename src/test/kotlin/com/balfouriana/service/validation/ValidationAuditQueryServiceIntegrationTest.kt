@@ -2,12 +2,20 @@ package com.balfouriana.service.validation
 
 import com.balfouriana.domain.CanonicalRecordMappedEvent
 import com.balfouriana.domain.CanonicalRecordType
+import com.balfouriana.domain.ConfidenceEscalationEvaluatedEvent
+import com.balfouriana.domain.ConfidenceLevel
+import com.balfouriana.domain.DomainEvent
 import com.balfouriana.domain.EventMetadata
+import com.balfouriana.domain.EscalationPriority
+import com.balfouriana.domain.FilingReadyRecordEvent
 import com.balfouriana.domain.IngestionChannel
 import com.balfouriana.domain.IngestionFileFormat
 import com.balfouriana.domain.RegulatoryRegime
 import com.balfouriana.domain.SourceRecordEnvelope
 import com.balfouriana.repository.EventStoreRepository
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +36,9 @@ class ValidationAuditQueryServiceIntegrationTest {
     @Autowired
     lateinit var eventStoreRepository: EventStoreRepository
 
+    @Autowired
+    lateinit var objectMapper: ObjectMapper
+
     @Test
     fun `returns decision chain by correlation id`() {
         val correlationId = UUID.randomUUID()
@@ -37,11 +48,31 @@ class ValidationAuditQueryServiceIntegrationTest {
         validationAndMappingService.process(event)
         val chain = validationAuditQueryService.decisionChainByCorrelationId(correlationId)
 
+        assertEquals(correlationId, chain.first().correlationId)
+        assertTrue(chain.zipWithNext().all { (left, right) -> !left.occurredAt.isAfter(right.occurredAt) })
         assertTrue(chain.any { it.eventType == "ValidationDecisionEvent" })
         assertTrue(chain.any { it.eventType == "CanonicalRecordValidatedEvent" })
         assertTrue(chain.any { it.eventType == "RuleDecisionEvent" })
         assertTrue(chain.any { it.eventType == "CalculationAppliedEvent" })
         assertTrue(chain.any { it.eventType == "FilingReadyRecordEvent" })
+        assertTrue(chain.any { it.eventType == "ConfidenceEscalationEvaluatedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingGenerationRequestedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingGeneratedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingSubmissionRequestedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingSubmittedEvent" })
+        assertTrue(chain.any { it.schemaVersion == "validation.step2.validated.v1" })
+        assertTrue(chain.any { it.schemaVersion == "rules.step3.filing-ready.v1" })
+        assertTrue(chain.all { it.regimes == setOf(RegulatoryRegime.MIFID_II) })
+
+        val filingReadyPayload = chain.last { it.eventType == "FilingReadyRecordEvent" }.payload
+        val filingReady = objectMapper.readValue<DomainEvent>(filingReadyPayload) as FilingReadyRecordEvent
+        assertTrue(filingReady.traceMetadata.containsKey("step3_rule_pack_id"))
+        assertTrue(filingReady.traceMetadata.containsKey("step3_rule_pack_version"))
+        assertTrue(filingReady.traceMetadata.containsKey("step3_applied_calculation_ids"))
+        val confidencePayload = chain.last { it.eventType == "ConfidenceEscalationEvaluatedEvent" }.payload
+        val confidence = objectMapper.readValue<DomainEvent>(confidencePayload) as ConfidenceEscalationEvaluatedEvent
+        assertEquals(ConfidenceLevel.HIGH, confidence.confidenceLevel)
+        assertEquals(EscalationPriority.P3_MONITOR, confidence.escalationPriority)
     }
 
     @Test
@@ -53,9 +84,23 @@ class ValidationAuditQueryServiceIntegrationTest {
         validationAndMappingService.process(event)
         val chain = validationAuditQueryService.decisionChainByCorrelationId(correlationId)
 
+        assertTrue(chain.zipWithNext().all { (left, right) -> !left.occurredAt.isAfter(right.occurredAt) })
+        assertTrue(chain.all { it.regimes == setOf(RegulatoryRegime.AIFMD_II) })
         assertTrue(chain.any { it.eventType == "RuleDecisionEvent" })
         assertTrue(chain.any { it.eventType == "CalculationAppliedEvent" })
         assertTrue(chain.any { it.eventType == "FilingReadyRecordEvent" })
+        assertTrue(chain.any { it.eventType == "ConfidenceEscalationEvaluatedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingGenerationRequestedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingGeneratedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingSubmissionRequestedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingSubmittedEvent" })
+        val filingReadyPayload = chain.last { it.eventType == "FilingReadyRecordEvent" }.payload
+        val filingReady = objectMapper.readValue<DomainEvent>(filingReadyPayload) as FilingReadyRecordEvent
+        assertEquals("step3-aifmd-annex-iv-calcs", filingReady.traceMetadata["step3_rule_pack_id"])
+        assertTrue(filingReady.traceMetadata.containsKey("aifmd_primary_metric"))
+        val confidencePayload = chain.last { it.eventType == "ConfidenceEscalationEvaluatedEvent" }.payload
+        val confidence = objectMapper.readValue<DomainEvent>(confidencePayload) as ConfidenceEscalationEvaluatedEvent
+        assertEquals(ConfidenceLevel.HIGH, confidence.confidenceLevel)
     }
 
     private fun canonicalEvent(correlationId: UUID): CanonicalRecordMappedEvent {

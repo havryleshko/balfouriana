@@ -25,7 +25,8 @@ class ValidationAndMappingService(
     private val venueMicEnrichmentAdapter: VenueMicEnrichmentAdapter,
     private val eventStoreRepository: EventStoreRepository,
     private val objectMapper: ObjectMapper,
-    private val ruleEngineService: RuleEngineService
+    private val ruleEngineService: RuleEngineService,
+    private val confidenceEscalationService: ConfidenceEscalationService
 ) {
     fun process(event: CanonicalRecordMappedEvent): ValidationProcessingResult {
         val pack = validationPackRegistry.select(event)
@@ -99,6 +100,15 @@ class ValidationAndMappingService(
             )
         }
         exceptionEvents.forEach { eventStoreRepository.append(it) }
+        eventStoreRepository.append(
+            confidenceEscalationService.forValidation(
+                event = event,
+                validationPack = pack.version,
+                exceptions = exceptions,
+                inputFingerprint = inputFingerprint,
+                outputFingerprint = outputFingerprint
+            )
+        )
 
         val hasBlockingErrors = exceptions.any { it.severity == ValidationSeverity.ERROR }
         if (!hasBlockingErrors) {

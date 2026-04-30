@@ -49,3 +49,14 @@ balfouriana:
       enabled: ${BALFOURIANA_DROP_ZONE_ENABLED:true}
       poll-interval-ms: ${BALFOURIANA_DROP_ZONE_POLL_MS:5000}
       stability-check-ms: ${BALFOURIANA_DROP_ZONE_STABILITY_MS:2000}
+  filing:
+    step4:
+      enabled: ${BALFOURIANA_STEP4_ENABLED:true}
+      submission:
+        channel: ${BALFOURIANA_STEP4_SUBMISSION_CHANNEL:SFTP}
+        local-outbox-dir: ${BALFOURIANA_STEP4_LOCAL_OUTBOX_DIR:./data/filing/outbox}
+        remote-base-path: ${BALFOURIANA_STEP4_REMOTE_BASE_PATH:/outbound}
+      acknowledgement:
+        channel: ${BALFOURIANA_STEP4_ACK_CHANNEL:SFTP}
+  demo:
+    data-dir: ${BALFOURIANA_DEMO_DATA_DIR:./balfouriana-demo-data}

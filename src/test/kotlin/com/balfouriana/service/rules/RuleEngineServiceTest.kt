@@ -14,6 +14,7 @@ import com.balfouriana.domain.SourceRecordEnvelope
 import com.balfouriana.domain.ValidationPackVersion
 import com.balfouriana.repository.EventStoreRepository
 import com.balfouriana.repository.PersistedEventRecord
+import com.balfouriana.service.validation.ConfidenceEscalationService
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -29,7 +30,8 @@ class RuleEngineServiceTest {
     private val service = RuleEngineService(
         rulePackRegistry = RulePackRegistry(),
         eventStoreRepository = repository,
-        objectMapper = mapper
+        objectMapper = mapper,
+        confidenceEscalationService = ConfidenceEscalationService(mapper)
     )
 
     @Test
@@ -289,6 +291,10 @@ private class InMemoryEventStoreRepository : EventStoreRepository {
 
     override fun findByOccurredAtBetween(startInclusive: Instant, endExclusive: Instant): List<PersistedEventRecord> {
         return records.filter { it.occurredAt >= startInclusive && it.occurredAt < endExclusive }
+    }
+
+    override fun findByEventType(eventType: String): List<PersistedEventRecord> {
+        return records.filter { it.eventType == eventType }
     }
 
     fun eventTypes(): Set<String> = records.map { it.eventType }.toSet()
