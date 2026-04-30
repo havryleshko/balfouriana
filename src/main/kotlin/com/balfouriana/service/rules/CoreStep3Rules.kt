@@ -20,7 +20,7 @@ class RecordTypeMustMatchFieldRule : Step3Rule {
                 reasonCode = "OK",
                 message = "record_type matches mapped record type",
                 severity = RuleSeverity.WARNING
-            )
+            ).withSourceFromCatalog()
         } else {
             RuleEvaluationResult(
                 ruleId = "step3.record_type.matches",
@@ -45,7 +45,7 @@ class PriceMustBePositiveForReadinessRule : Step3Rule {
                 reasonCode = "OK",
                 message = "price is positive and eligible for filing-ready output",
                 severity = RuleSeverity.WARNING
-            )
+            ).withSourceFromCatalog()
         } else {
             RuleEvaluationResult(
                 ruleId = "step3.price.positive_for_readiness",
@@ -54,7 +54,7 @@ class PriceMustBePositiveForReadinessRule : Step3Rule {
                 reasonCode = "PRICE_MISSING_OR_NON_POSITIVE",
                 message = "price must be greater than zero for filing-ready output",
                 severity = RuleSeverity.ERROR
-            )
+            ).withSourceFromCatalog()
         }
     }
 }
@@ -70,7 +70,8 @@ class NotionalCalculation : Step3Calculation {
                 methodVersion = "2026.04.28"
             ),
             calculatedFields = mapOf("calculated_notional" to notional),
-            metadata = mapOf("rounding" to "HALF_UP", "scale" to "8")
+            metadata = mapOf("rounding" to "HALF_UP", "scale" to "8") +
+                TransactionRuleCatalog.regulatoryMetadata(TransactionRuleCatalog.step3FoundationSource)
         )
     }
 }

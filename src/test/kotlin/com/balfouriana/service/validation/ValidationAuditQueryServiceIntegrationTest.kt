@@ -39,6 +39,23 @@ class ValidationAuditQueryServiceIntegrationTest {
 
         assertTrue(chain.any { it.eventType == "ValidationDecisionEvent" })
         assertTrue(chain.any { it.eventType == "CanonicalRecordValidatedEvent" })
+        assertTrue(chain.any { it.eventType == "RuleDecisionEvent" })
+        assertTrue(chain.any { it.eventType == "CalculationAppliedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingReadyRecordEvent" })
+    }
+
+    @Test
+    fun `aifmd regime audit chain includes step3 events`() {
+        val correlationId = UUID.randomUUID()
+        val event = canonicalAifmdEvent(correlationId)
+        eventStoreRepository.append(event)
+
+        validationAndMappingService.process(event)
+        val chain = validationAuditQueryService.decisionChainByCorrelationId(correlationId)
+
+        assertTrue(chain.any { it.eventType == "RuleDecisionEvent" })
+        assertTrue(chain.any { it.eventType == "CalculationAppliedEvent" })
+        assertTrue(chain.any { it.eventType == "FilingReadyRecordEvent" })
     }
 
     private fun canonicalEvent(correlationId: UUID): CanonicalRecordMappedEvent {
@@ -76,7 +93,40 @@ class ValidationAuditQueryServiceIntegrationTest {
                 "price" to "12.45",
                 "currency" to "GBP",
                 "venue" to "xlon",
-                "counterparty_lei" to "5493001KJTIIGC8Y1R12"
+                "counterparty_lei" to "5493001KJTIIGC8Y1R12",
+                "buyer_lei" to "5493001KJTIIGC8Y1R12",
+                "seller_lei" to "213800D1EI4B9WTWWD28",
+                "decision_maker_lei" to "7245008N4E6Y7Z5RAA41",
+                "execution_actor_type" to "HUMAN",
+                "venue_code" to "XLON",
+                "otc_indicator" to "N",
+                "waiver_indicator" to "N",
+                "short_selling_indicator" to "N",
+                "commodity_derivative_indicator" to "N",
+                "price_notation" to "MONETARY",
+                "price_currency" to "GBP"
+            )
+        )
+    }
+
+    private fun canonicalAifmdEvent(correlationId: UUID): CanonicalRecordMappedEvent {
+        val base = canonicalEvent(correlationId)
+        return base.copy(
+            metadata = base.metadata.copy(regimes = setOf(RegulatoryRegime.AIFMD_II)),
+            canonicalFields = base.canonicalFields + mapOf(
+                "aifmd_commitment_exposure" to "150",
+                "aifmd_nav" to "100",
+                "aifmd_gross_exposure" to "120",
+                "aifmd_fund_structure" to "OPEN_ENDED",
+                "aifmd_delegated_nav" to "10",
+                "aifmd_total_nav" to "100",
+                "aifmd_internal_fte" to "4",
+                "aifmd_delegated_fte" to "1",
+                "aifmd_lmt_used" to "N",
+                "aifmd_largest_borrower_exposure" to "15",
+                "aifmd_total_loan_exposure" to "100",
+                "aifmd_retained_amount" to "10",
+                "aifmd_securitized_total" to "100"
             )
         )
     }

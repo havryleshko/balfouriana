@@ -124,4 +124,159 @@ class DomainEventSerializationTest {
         val decoded: DomainEvent = mapper.readValue(payload)
         assertEquals(event, decoded)
     }
+
+    @Test
+    fun `serializes and deserializes rule decision event`() {
+        val event = RuleDecisionEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "rules-service",
+                occurredAt = Instant.parse("2026-04-29T11:00:00Z"),
+                schemaVersion = "rules.step3.decision.v1",
+                regimes = setOf(RegulatoryRegime.MIFID_II)
+            ),
+            artifactId = UUID.randomUUID(),
+            recordType = CanonicalRecordType.TRADE,
+            recordIndex = 1,
+            rulePackVersion = RulePackVersion(
+                packId = "step3-mifid-foundation",
+                version = "2026.04.28",
+                effectiveFrom = Instant.parse("2026-04-28T00:00:00Z")
+            ),
+            ruleResult = RuleEvaluationResult(
+                ruleId = "step3.price.positive_for_readiness",
+                layer = RuleLayer.READINESS,
+                outcome = RuleOutcome.PASS,
+                reasonCode = "OK",
+                message = "price is positive",
+                severity = RuleSeverity.WARNING,
+                sourceAuthority = "internal",
+                sourceReference = "balfouriana step3 foundation",
+                sourcePublishedAt = "2026-04-28T00:00:00Z"
+            ),
+            inputFingerprint = "in",
+            outputFingerprint = "out",
+            exceptionId = null
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
+
+    @Test
+    fun `serializes and deserializes rule exception event`() {
+        val event = RuleExceptionRaisedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "rules-service",
+                occurredAt = Instant.parse("2026-04-29T11:01:00Z"),
+                schemaVersion = "rules.step3.exception.v1",
+                regimes = setOf(RegulatoryRegime.EMIR)
+            ),
+            artifactId = UUID.randomUUID(),
+            recordType = CanonicalRecordType.TRADE,
+            recordIndex = 3,
+            rulePackVersion = RulePackVersion(
+                packId = "step3-emir-foundation",
+                version = "2026.04.28",
+                effectiveFrom = Instant.parse("2026-04-28T00:00:00Z")
+            ),
+            exception = RuleExceptionEnvelope(
+                exceptionId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                eventId = UUID.randomUUID(),
+                regime = RegulatoryRegime.EMIR,
+                ruleId = "step3.price.positive_for_readiness",
+                severity = RuleSeverity.ERROR,
+                rejectionCategory = "READINESS",
+                reasonCode = "PRICE_MISSING_OR_NON_POSITIVE",
+                message = "price must be positive",
+                remediationHint = "Fix price"
+            )
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
+
+    @Test
+    fun `serializes and deserializes calculation applied event`() {
+        val event = CalculationAppliedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "rules-service",
+                occurredAt = Instant.parse("2026-04-29T11:02:00Z"),
+                schemaVersion = "rules.step3.calculation.v1",
+                regimes = setOf(RegulatoryRegime.AIFMD_II)
+            ),
+            artifactId = UUID.randomUUID(),
+            recordType = CanonicalRecordType.POSITION,
+            recordIndex = 2,
+            rulePackVersion = RulePackVersion(
+                packId = "step3-aifmd-annex-iv-calcs",
+                version = "2026.04.30",
+                effectiveFrom = Instant.parse("2026-04-28T00:00:00Z")
+            ),
+            calculationMethod = CalculationMethodRef(
+                calculationId = "aifmd.commitment_leverage.calc",
+                methodVersion = "2026.04.30"
+            ),
+            calculatedFields = mapOf("aifmd_commitment_leverage_ratio" to "175"),
+            calculationMetadata = mapOf(
+                "regulatory_source_authority" to "ESMA",
+                "regulatory_source_reference" to "AIFMD II Annex IV leverage and reporting",
+                "regulatory_source_published_at" to "2026-04-16T00:00:00Z"
+            ),
+            inputFingerprint = "in",
+            outputFingerprint = "out"
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
+
+    @Test
+    fun `serializes and deserializes filing ready event`() {
+        val event = FilingReadyRecordEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "rules-service",
+                occurredAt = Instant.parse("2026-04-29T11:03:00Z"),
+                schemaVersion = "rules.step3.filing-ready.v1",
+                regimes = setOf(RegulatoryRegime.MIFID_II)
+            ),
+            artifactId = UUID.randomUUID(),
+            envelope = SourceRecordEnvelope(
+                sourceId = "test",
+                sourceSystem = "test",
+                ingestionChannel = IngestionChannel.REST,
+                fileId = UUID.randomUUID(),
+                originalFileName = "trades.csv",
+                recordIndex = 1,
+                receivedAt = Instant.parse("2026-04-29T10:59:59Z"),
+                format = IngestionFileFormat.CSV,
+                contentType = "text/csv",
+                fileSizeBytes = 100,
+                checksumSha256 = "abc",
+                schemaHint = null
+            ),
+            recordType = CanonicalRecordType.TRADE,
+            rulePackVersion = RulePackVersion(
+                packId = "step3-mifid-foundation",
+                version = "2026.04.28",
+                effectiveFrom = Instant.parse("2026-04-28T00:00:00Z")
+            ),
+            filingReadyFields = mapOf("trade_id" to "T-1", "calculated_notional" to "1000"),
+            traceMetadata = mapOf("sourceValidatedSchemaVersion" to "validation.step2.validated.v1"),
+            inputFingerprint = "in",
+            outputFingerprint = "out"
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
 }

@@ -9,6 +9,8 @@ import com.balfouriana.domain.RegulatoryRegime
 import com.balfouriana.domain.SourceRecordEnvelope
 import com.balfouriana.repository.EventStoreRepository
 import com.balfouriana.repository.PersistedEventRecord
+import com.balfouriana.service.rules.RuleEngineService
+import com.balfouriana.service.rules.RulePackRegistry
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -26,7 +28,12 @@ class ValidationAndMappingServiceTest {
         instrumentEnrichmentAdapter = InstrumentEnrichmentAdapter(),
         venueMicEnrichmentAdapter = VenueMicEnrichmentAdapter(),
         eventStoreRepository = repository,
-        objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).findAndRegisterModules()
+        objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).findAndRegisterModules(),
+        ruleEngineService = RuleEngineService(
+            rulePackRegistry = RulePackRegistry(),
+            eventStoreRepository = repository,
+            objectMapper = ObjectMapper().registerModule(KotlinModule.Builder().build()).findAndRegisterModules()
+        )
     )
 
     @Test

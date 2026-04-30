@@ -26,7 +26,10 @@ data class RuleEvaluationResult(
     val outcome: RuleOutcome,
     val reasonCode: String,
     val message: String,
-    val severity: RuleSeverity
+    val severity: RuleSeverity,
+    val sourceAuthority: String = "",
+    val sourceReference: String = "",
+    val sourcePublishedAt: String = ""
 )
 
 data class RulePackVersion(
