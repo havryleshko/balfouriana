@@ -54,10 +54,10 @@
 - **Dependencies**: Phase 4
 - **Status**: Completed for MiFID (5a–5d); deferred sub-work for AIFMD/EMIR templates
 - **Notes**:
-  - **5a MiFID templates — Completed** ([`phase-5a-plan.md`](phase-5a-plan.md)): `RegulatoryRegimeSelector`, MiFID field passthrough, `MifidFilingTemplatePack`, golden-file renderer tests.
-  - **5b MiFID XSD gate — Completed** ([`phase-5b-plan.md`](phase-5b-plan.md)): pre-submit schema validation, internal contract XSD, fail-closed orchestrator gate.
-  - **5c Production submission — Completed** ([`phase-5c-plan.md`](phase-5c-plan.md)): honest local-outbox default, optional real SFTP, submission event linkage fix, idempotent resubmit guard.
-  - **5d ACK hardening — Completed** ([`phase-5d-plan.md`](phase-5d-plan.md)): ACK drop-zone poller, typed submission lookup, sentinel orphan correlation, idempotent ACK ingestion.
+  - **5a MiFID templates — Completed**: `RegulatoryRegimeSelector`, MiFID field passthrough, `MifidFilingTemplatePack`, golden-file renderer tests.
+  - **5b MiFID XSD gate — Completed**: pre-submit schema validation, internal contract XSD, fail-closed orchestrator gate.
+  - **5c Production submission — Completed**: honest local-outbox default, optional real SFTP, submission event linkage fix, idempotent resubmit guard.
+  - **5d ACK hardening — Completed**: ACK drop-zone poller, typed submission lookup, sentinel orphan correlation, idempotent ACK ingestion.
   - **Deferred (future 5e/5f or parallel track):** Real AIFMD Annex IV XML and EMIR ISO 20022 templates + XSD validators + golden tests — same pattern as 5a/5b. Submission (5c) and ACK (5d) already work for any regime; only file generation quality differs. Stub renderers remain in `AifmdXmlFilingRenderer` / `EmirIso20022FilingRenderer`.
 
 ### Phase 6: Step 5 - Exception Operations and Immutable Audit
@@ -67,9 +67,9 @@
 - **Dependencies**: Phase 5 (MiFID path — 5a–5d complete)
 - **Status**: Completed
 - **Notes**:
-  - **6a Exception queue — Completed** ([`phase-6a-plan.md`](phase-6a-plan.md)): read-model queue over validation/rule/filing/ACK failure events; `GET /demo/exceptions` with filters.
-  - **6b Resolution/resubmit — Completed** ([`phase-6b-plan.md`](phase-6b-plan.md)): immutable `ExceptionResolvedEvent` / `ExceptionResubmitRequestedEvent`; dismiss + Step 4 resubmit with `forceResubmit`; REST resolve/resubmit endpoints.
-  - **6c Audit export — Completed** ([`phase-6c-plan.md`](phase-6c-plan.md)): `AuditExportService`, `GET /demo/audit/export` with filters and download headers; full pipeline timeline including resolution events.
+  - **6a Exception queue — Completed**: read-model queue over validation/rule/filing/ACK failure events; `GET /demo/exceptions` with filters.
+  - **6b Resolution/resubmit — Completed**: immutable `ExceptionResolvedEvent` / `ExceptionResubmitRequestedEvent`; dismiss + Step 4 resubmit with `forceResubmit`; REST resolve/resubmit endpoints.
+  - **6c Audit export — Completed**: `AuditExportService`, `GET /demo/audit/export` with filters and download headers; full pipeline timeline including resolution events.
 
 ### Phase 7: End-to-End Hardening and Go-Live Readiness
 

@@ -84,4 +84,3 @@ CORS for `http://localhost:3000` and `http://localhost:5173` is enabled in backe
 - [HELP.md](HELP.md) — env vars and operational runbooks
 - [master-execution-plan.md](master-execution-plan.md) — phase roadmap
 - [website/](website/) — marketing landing page ([website/master-execution-plan.md](website/master-execution-plan.md))
-- [phase-5a-plan.md](phase-5a-plan.md) … [phase-6c-plan.md](phase-6c-plan.md) — completed phase notes
