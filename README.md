@@ -19,6 +19,7 @@ ingest → validate → rules → filing → submit → ACK → exception ops �
 - Local outbox submission by default; optional SFTP; ACK drop-zone ingestion
 - Exception queue with operator resolve/resubmit and regulator-ready audit export
 - Demo console (`frontend/`) over REST APIs; sample data in `balfouriana-demo-data/`
+- Marketing site ([`website/`](website/)) → [balfouriana.com](https://balfouriana.com) (Next.js + Vercel; separate from demo console)
 
 ## Quick start
 
@@ -82,4 +83,5 @@ CORS for `http://localhost:3000` and `http://localhost:5173` is enabled in backe
 
 - [HELP.md](HELP.md) — env vars and operational runbooks
 - [master-execution-plan.md](master-execution-plan.md) — phase roadmap
+- [website/](website/) — marketing landing page ([website/master-execution-plan.md](website/master-execution-plan.md))
 - [phase-5a-plan.md](phase-5a-plan.md) … [phase-6c-plan.md](phase-6c-plan.md) — completed phase notes

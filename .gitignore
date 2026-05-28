@@ -37,5 +37,11 @@ frontend/node_modules/
 frontend/dist/
 frontend/.env
 
+# Marketing website
+website/node_modules/
+website/dist/
+website/.env
+website/.vercel/
+
 # Local runtime data
 data/

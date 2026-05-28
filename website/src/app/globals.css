@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  ::selection {
+    @apply bg-brand-accent/15 text-brand-accent;
+  }
+
+  :root {
+    --background: #fafaf9;
+    --foreground: #0c0c0d;
+    --card: #ffffff;
+    --card-foreground: #0c0c0d;
+    --popover: #ffffff;
+    --popover-foreground: #0c0c0d;
+    --primary: #166534;
+    --primary-foreground: #ffffff;
+    --secondary: #f5f5f4;
+    --secondary-foreground: #0c0c0d;
+    --muted: #f5f5f4;
+    --muted-foreground: #71717a;
+    --accent: #fff7ed;
+    --accent-foreground: #c2410c;
+    --destructive: #dc2626;
+    --border: rgba(0, 0, 0, 0.06);
+    --input: rgba(0, 0, 0, 0.06);
+    --ring: #166534;
+    --radius: 0.625rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+}
+
+@layer utilities {
+  .bg-grid-light {
+    background-image:
+      linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  }
+}
