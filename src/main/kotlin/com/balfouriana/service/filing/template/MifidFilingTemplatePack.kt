@@ -7,7 +7,7 @@ object MifidFilingTemplatePack {
     const val SCHEMA_RESOURCE_PATH = "filing/mifid/schemas/mifir-transaction-report-2026.05.18.xsd"
     const val SCHEMA_VERSION = "2026.05.18"
 
-    val version: FilingTemplateVersion = FilingTemplateVersion(
+    val templateVersion: FilingTemplateVersion = FilingTemplateVersion(
         templateId = "step4-mifid-xml",
         version = "2026.05.18",
         effectiveFrom = Instant.parse("2026-05-18T00:00:00Z"),

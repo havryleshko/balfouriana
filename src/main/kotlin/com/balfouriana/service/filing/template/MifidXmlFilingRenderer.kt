@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component
 
 @Component
 class MifidXmlFilingRenderer : FilingRenderer {
-    override val templateId: String = MifidFilingTemplatePack.version.templateId
-    override val templateVersion: String = MifidFilingTemplatePack.version.version
+    override val templateId: String = MifidFilingTemplatePack.templateVersion.templateId
+    override val templateVersion: String = MifidFilingTemplatePack.templateVersion.version
     override val outputFormat: FilingOutputFormat = FilingOutputFormat.XML
 
     override fun supports(regime: RegulatoryRegime): Boolean = regime == RegulatoryRegime.MIFID_II
 
     override fun render(event: FilingReadyRecordEvent): String {
-        val pack = MifidFilingTemplatePack.version
+        val pack = MifidFilingTemplatePack.templateVersion
         val elements = MifidFilingTemplatePack.canonicalToXmlElement.mapNotNull { (canonicalKey, xmlElement) ->
             val value = event.filingReadyFields[canonicalKey]?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
             "<$xmlElement>${escapeXml(value)}</$xmlElement>"

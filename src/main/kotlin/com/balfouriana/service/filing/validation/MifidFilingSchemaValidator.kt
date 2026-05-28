@@ -14,12 +14,12 @@ class MifidFilingSchemaValidator : FilingSchemaValidator {
     private val schema by lazy { loadSchema() }
 
     override fun supports(templateId: String, outputFormat: FilingOutputFormat): Boolean {
-        return templateId == MifidFilingTemplatePack.version.templateId &&
+        return templateId == MifidFilingTemplatePack.templateVersion.templateId &&
             outputFormat == FilingOutputFormat.XML
     }
 
     override fun validate(payload: String, templateVersion: String): FilingSchemaValidationResult {
-        if (templateVersion != MifidFilingTemplatePack.version.version) {
+        if (templateVersion != MifidFilingTemplatePack.templateVersion.version) {
             return FilingSchemaValidationResult.failure(
                 listOf(
                     FilingSchemaValidationError(
