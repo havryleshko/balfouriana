@@ -1,87 +1,85 @@
-# Balforiana
+# Balfouriana
 
 **Regulatory reporting engine for UK/EU funds.**
 
-Small and mid-sized AIFMs currently outsource the compliance work they are legally responsible for. Balforiana replaces that entire outsourced process: it ingests raw custodian data and hands back regulator-accepted filings with a full audit trail as the complete outcome
+Small and mid-sized AIFMs outsource the compliance work they remain legally responsible for. Balfouriana replaces that outsourced process: ingest raw custodian data, apply deterministic validation and rules, generate regulator-ready filings, and maintain a complete immutable audit trail.
 
-## Highlights
-- Single Spring Boot application with five focused modules
-- Immutable, event-sourced domain model
-- Correctness-first incremental implementation
-- Currently in early development
+## Current status
 
-## Quick Start
-```bash
-./gradlew bootRun
+Phases **1–6** are complete. The pipeline runs end-to-end for **MiFID II** (generation, XSD validation, submission, ACK/NACK). **AIFMD** and **EMIR** rule paths work; filing templates for those regimes are stubs until prioritized. **Phase 7** (E2E hardening) is next — see [master-execution-plan.md](master-execution-plan.md).
+
+```
+ingest → validate → rules → filing → submit → ACK → exception ops → audit export
 ```
 
-Run tests:
+## Highlights
+
+- Single Spring Boot app, event-sourced domain model, correctness-first delivery
+- Versioned validation packs, rule packs, and MiFID filing templates
+- Local outbox submission by default; optional SFTP; ACK drop-zone ingestion
+- Exception queue with operator resolve/resubmit and regulator-ready audit export
+- Demo console (`frontend/`) over REST APIs; sample data in `balfouriana-demo-data/`
+
+## Quick start
 
 ```bash
+./gradlew bootRun
 ./gradlew test
 ```
 
-## Ingestion (Phase 2)
+Operational detail (env vars, drop zones, SFTP): [HELP.md](HELP.md). Architecture and principles: [design.md](design.md).
 
-Files: `POST /ingest` with multipart field `file`, or drop into `{ingest root}/incoming/` (see `balfouriana.ingestion.*` in `application.yaml`; override root with `BALFOURIANA_INGEST_ROOT`). Optional auth: set `BALFOURIANA_INGESTION_API_KEY` and send `X-Ingestion-Api-Key`. SFTP and operational detail: [HELP.md](HELP.md).
+## Pipeline (what ships today)
 
-## Step 3 Rules Engine (Phase 4.3 Status)
+| Step | Scope |
+|------|--------|
+| **Ingest** | `POST /ingest`, filesystem drop zone under `./data/ingest/incoming/` |
+| **Validate & enrich** | Versioned Step 2 packs; stub LEI/instrument/venue enrichment |
+| **Rules & calculations** | MiFID, AIFMD Annex IV, EMIR packs; `FilingReadyRecordEvent` + trace metadata |
+| **Filing (MiFID)** | MiFIR XML renderer, XSD gate, local outbox or SFTP submit |
+| **ACK loop** | CSV/XML drop zone; linked NACK and orphan handling |
+| **Exception ops** | Open queue, dismiss/acknowledge, Step 4 resubmit (`forceResubmit`) |
+| **Audit export** | Full timeline JSON download per correlation or filter |
 
-Phase 4.3 is implemented on top of the Step 3 rule engine foundation.
+Deferred: real AIFMD/EMIR filing file quality (5e/5f); live GLEIF/FIRDS; external rule-pack feeds.
 
-- Dedicated versioned AIFMD II pack: `step3-aifmd-annex-iv-calcs`
-- Deterministic multi-regime precedence: `EMIR` > `MIFID_II` > `AIFMD_II` > default
-- AIFMD calculations/rules implemented:
-  - Commitment leverage and gross leverage
-  - LOF leverage cap checks (open-ended and closed-ended caps)
-  - Delegation percentage and internal/delegated FTE split
-  - LMT usage consistency
-  - Loan concentration (20% borrower cap)
-  - Risk retention (5% minimum)
-- Runtime traceability on emitted events:
-  - `RuleDecisionEvent.ruleResult` includes source authority/reference/published-at
-  - `CalculationAppliedEvent.calculationMetadata` includes `regulatory_source_*`
-  - `FilingReadyRecordEvent.traceMetadata` includes pack/version and applied calculation IDs
-- Phase 4.5-compatible metadata now emitted on filing-ready outputs:
-  - `aifmd_review_required`
-  - `aifmd_blocking_error_count`
-  - `aifmd_needs_review_count`
-  - `aifmd_primary_metric`
-  - `aifmd_primary_metric_value`
+## Demo APIs
 
-## Test Coverage (Current)
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /demo/scenarios` | List demo fixture files |
+| `GET /demo/scenarios/{scenario}/{fileName}/ingest` | Ingest a scenario file |
+| `GET /demo/runs` | Recent pipeline runs |
+| `GET /demo/runs/{correlationId}` | Full event chain for a run |
+| `GET /demo/runs/{correlationId}/summary` | Run status summary |
+| `GET /demo/exceptions` | Open exception queue (filters: severity, source step, correlation) |
+| `POST /demo/exceptions/{id}/resolve` | Dismiss or acknowledge an exception |
+| `POST /demo/exceptions/{id}/resubmit` | Retry Step 4 after NACK/submission failure |
+| `GET /demo/audit/export` | Regulator-ready audit bundle (attachment download) |
 
-The current test suite covers:
+## Step 3 rules (AIFMD example)
 
-- Rule pack selection and precedence behavior
-- AIFMD calculation/rule pass, review, and blocking paths
-- Step 3 audit chain events for AIFMD flows
-- Domain event serialization for updated Step 3 contracts
-- Deterministic output fingerprints and trace metadata checks
+- Pack: `step3-aifmd-annex-iv-calcs`
+- Regime precedence via `RegulatoryRegimeSelector`: EMIR → MIFID_II → AIFMD_II
+- Calculations: leverage, LOF cap, delegation, LMT, loan concentration, risk retention
+- Trace metadata on `FilingReadyRecordEvent`, `RuleDecisionEvent`, `CalculationAppliedEvent`
 
-## Frontend Demo Console
+## Frontend demo console
 
-The demo console lives in `frontend/` and consumes the engine APIs.
+1. Backend: `./gradlew bootRun`
+2. Frontend:
+   ```bash
+   cd frontend
+   npm install
+   cp .env.example .env
+   npm run dev
+   ```
+3. Set `ENGINE_API_BASE_URL=http://localhost:8080` in `frontend/.env`
 
-1. Start backend:
-```bash
-./gradlew bootRun
-```
-2. Start frontend:
-```bash
-cd frontend
-npm install
-cp .env.example .env
-npm run dev
-```
+CORS for `http://localhost:3000` and `http://localhost:5173` is enabled in backend config.
 
-The frontend expects `ENGINE_API_BASE_URL=http://localhost:8080`.
-Local CORS for `http://localhost:3000` and `http://localhost:5173` is enabled in backend config.
+## Docs & plans
 
-### Demo APIs for frontend
-
-- `GET /demo/scenarios`
-- `GET /demo/scenarios/{scenario}/{fileName}`
-- `GET /demo/runs`
-- `GET /demo/runs/{correlationId}`
-- `GET /demo/runs/{correlationId}/summary`
+- [HELP.md](HELP.md) — env vars and operational runbooks
+- [master-execution-plan.md](master-execution-plan.md) — phase roadmap
+- [phase-5a-plan.md](phase-5a-plan.md) … [phase-6c-plan.md](phase-6c-plan.md) — completed phase notes
