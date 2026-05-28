@@ -9,7 +9,9 @@ import com.balfouriana.domain.IngestionFileFormat
 import com.balfouriana.domain.RegulatoryRegime
 import com.balfouriana.domain.RulePackVersion
 import com.balfouriana.domain.SourceRecordEnvelope
+import com.balfouriana.service.filing.template.MifidXmlFilingRenderer
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -30,9 +32,12 @@ class FilingRendererRegistryTest {
         val first = registry.render(event)
         val second = registry.render(event)
         assertEquals("step4-mifid-xml", first.templateId)
+        assertEquals("2026.05.18", first.templateVersion)
         assertEquals(FilingOutputFormat.XML, first.outputFormat)
         assertEquals(first.payload, second.payload)
         assertEquals(first.checksumSha256, second.checksumSha256)
+        assertTrue(first.payload.contains("MiFIRTransactionReport"))
+        assertFalse(first.payload.contains("<field name="))
     }
 
     @Test

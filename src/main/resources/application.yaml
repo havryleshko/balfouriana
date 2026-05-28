@@ -52,11 +52,34 @@ balfouriana:
   filing:
     step4:
       enabled: ${BALFOURIANA_STEP4_ENABLED:true}
+      schema-validation:
+        enabled: ${BALFOURIANA_STEP4_SCHEMA_VALIDATION_ENABLED:true}
       submission:
-        channel: ${BALFOURIANA_STEP4_SUBMISSION_CHANNEL:SFTP}
+        mode: ${BALFOURIANA_STEP4_SUBMISSION_MODE:LOCAL_OUTBOX}
+        channel: ${BALFOURIANA_STEP4_SUBMISSION_CHANNEL:LOCAL_OUTBOX}
         local-outbox-dir: ${BALFOURIANA_STEP4_LOCAL_OUTBOX_DIR:./data/filing/outbox}
         remote-base-path: ${BALFOURIANA_STEP4_REMOTE_BASE_PATH:/outbound}
+        sftp:
+          host: ${BALFOURIANA_STEP4_SFTP_HOST:}
+          port: ${BALFOURIANA_STEP4_SFTP_PORT:22}
+          username: ${BALFOURIANA_STEP4_SFTP_USERNAME:}
+          password: ${BALFOURIANA_STEP4_SFTP_PASSWORD:}
+          private-key-path: ${BALFOURIANA_STEP4_SFTP_PRIVATE_KEY_PATH:}
+          remote-directory: ${BALFOURIANA_STEP4_SFTP_REMOTE_DIR:/outbound}
       acknowledgement:
         channel: ${BALFOURIANA_STEP4_ACK_CHANNEL:SFTP}
+        drop-zone:
+          enabled: ${BALFOURIANA_STEP4_ACK_DROP_ZONE_ENABLED:true}
+          root: ${BALFOURIANA_STEP4_ACK_ROOT:./data/filing/ack}
+          poll-interval-ms: ${BALFOURIANA_STEP4_ACK_POLL_MS:5000}
+          stability-check-ms: ${BALFOURIANA_STEP4_ACK_STABILITY_MS:2000}
+  ops:
+    exception-queue:
+      lookback-hours: ${BALFOURIANA_EXCEPTION_QUEUE_LOOKBACK_HOURS:168}
+      default-limit: ${BALFOURIANA_EXCEPTION_QUEUE_LIMIT:100}
+    audit-export:
+      default-limit: ${BALFOURIANA_AUDIT_EXPORT_DEFAULT_LIMIT:500}
+      max-limit: ${BALFOURIANA_AUDIT_EXPORT_MAX_LIMIT:5000}
+      default-lookback-hours: ${BALFOURIANA_AUDIT_EXPORT_LOOKBACK_HOURS:168}
   demo:
     data-dir: ${BALFOURIANA_DEMO_DATA_DIR:./balfouriana-demo-data}

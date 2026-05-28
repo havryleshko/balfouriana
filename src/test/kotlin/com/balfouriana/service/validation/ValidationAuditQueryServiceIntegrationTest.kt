@@ -132,6 +132,7 @@ class ValidationAuditQueryServiceIntegrationTest {
             recordType = CanonicalRecordType.TRADE,
             canonicalFields = mapOf(
                 "record_type" to "TRADE",
+                "trade_id" to "T-100",
                 "instrument_id" to "GB00B03MLX29",
                 "trade_date" to "2026-04-20",
                 "quantity" to "100",

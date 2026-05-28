@@ -24,7 +24,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
     JsonSubTypes.Type(value = FilingSubmissionRequestedEvent::class, name = "filingSubmissionRequested"),
     JsonSubTypes.Type(value = FilingSubmittedEvent::class, name = "filingSubmitted"),
     JsonSubTypes.Type(value = FilingSubmissionFailedEvent::class, name = "filingSubmissionFailed"),
-    JsonSubTypes.Type(value = FilingAcknowledgementReceivedEvent::class, name = "filingAcknowledgementReceived")
+    JsonSubTypes.Type(value = FilingAcknowledgementReceivedEvent::class, name = "filingAcknowledgementReceived"),
+    JsonSubTypes.Type(value = ExceptionResolvedEvent::class, name = "exceptionResolved"),
+    JsonSubTypes.Type(value = ExceptionResubmitRequestedEvent::class, name = "exceptionResubmitRequested")
 )
 sealed interface DomainEvent {
     val metadata: EventMetadata

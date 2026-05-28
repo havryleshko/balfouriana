@@ -24,16 +24,19 @@ class CanonicalRecordMapper {
         return MappingOutcome.Mapped(type, normalized)
     }
 
-    private fun mapTrade(fields: Map<String, String>): Map<String, String> = mapOf(
-        "record_type" to "TRADE",
-        "trade_id" to fields["trade_id"].orEmpty(),
-        "instrument_id" to fields["instrument_id"].orEmpty(),
-        "trade_date" to fields["trade_date"].orEmpty(),
-        "quantity" to fields["quantity"].orEmpty(),
-        "price" to fields["price"].orEmpty(),
-        "currency" to fields["currency"].orEmpty(),
-        "venue" to fields["venue"].orEmpty()
-    )
+    private fun mapTrade(fields: Map<String, String>): Map<String, String> {
+        val base = mapOf(
+            "record_type" to "TRADE",
+            "trade_id" to fields["trade_id"].orEmpty(),
+            "instrument_id" to fields["instrument_id"].orEmpty(),
+            "trade_date" to fields["trade_date"].orEmpty(),
+            "quantity" to fields["quantity"].orEmpty(),
+            "price" to fields["price"].orEmpty(),
+            "currency" to fields["currency"].orEmpty(),
+            "venue" to fields["venue"].orEmpty()
+        )
+        return base + copyAllowlisted(fields, MIFID_TRADE_PASSTHROUGH)
+    }
 
     private fun mapPosition(fields: Map<String, String>): Map<String, String> = mapOf(
         "record_type" to "POSITION",
@@ -62,6 +65,29 @@ class CanonicalRecordMapper {
         "effective_date" to fields["effective_date"].orEmpty(),
         "ratio" to fields["ratio"].orEmpty()
     )
+
+    private fun copyAllowlisted(fields: Map<String, String>, keys: Set<String>): Map<String, String> {
+        return keys.mapNotNull { key ->
+            fields[key]?.takeIf { it.isNotBlank() }?.let { key to it }
+        }.toMap()
+    }
+
+    companion object {
+        val MIFID_TRADE_PASSTHROUGH: Set<String> = setOf(
+            "buyer_lei",
+            "seller_lei",
+            "decision_maker_lei",
+            "execution_actor_type",
+            "venue_code",
+            "otc_indicator",
+            "waiver_indicator",
+            "short_selling_indicator",
+            "commodity_derivative_indicator",
+            "price_notation",
+            "price_currency",
+            "cleared_status"
+        )
+    }
 }
 
 sealed interface MappingOutcome {

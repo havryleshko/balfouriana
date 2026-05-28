@@ -13,6 +13,8 @@ enum class FilingAcknowledgementStatus {
     UNRESOLVED
 }
 
+val UNLINKED_ACK_CORRELATION_ID: UUID = UUID.fromString("00000000-0000-4000-8000-00000000000a")
+
 data class FilingGenerationRequestedEvent(
     override val metadata: EventMetadata,
     val artifactId: UUID,

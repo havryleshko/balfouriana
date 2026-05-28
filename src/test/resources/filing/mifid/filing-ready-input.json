@@ -1,0 +1,25 @@
+{
+  "filingReadyFields": {
+    "record_type": "TRADE",
+    "trade_id": "T-100",
+    "instrument_id": "GB00B03MLX29",
+    "trade_date": "2026-04-22",
+    "quantity": "100",
+    "price": "10.3",
+    "currency": "GBP",
+    "buyer_lei": "5493001KJTIIGC8Y1R12",
+    "seller_lei": "213800D1EI4B9WTWWD28",
+    "decision_maker_lei": "7245008N4E6Y7Z5RAA41",
+    "execution_actor_type": "HUMAN",
+    "venue_code": "XLON",
+    "otc_indicator": "N",
+    "waiver_indicator": "N",
+    "short_selling_indicator": "N",
+    "commodity_derivative_indicator": "N",
+    "price_notation": "MONETARY",
+    "price_currency": "GBP",
+    "calculated_notional": "1030.0",
+    "mifid_transaction_side": "BUYER_SIDE",
+    "mifid_execution_mode": "HUMAN"
+  }
+}

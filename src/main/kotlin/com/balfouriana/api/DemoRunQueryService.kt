@@ -1,5 +1,6 @@
 package com.balfouriana.api
 
+import com.balfouriana.domain.Step4Summary
 import com.balfouriana.repository.EventStoreRepository
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -131,12 +132,6 @@ data class DemoRunSummaryResponse(
     val blockingCount: Int,
     val reasonCodes: List<String>,
     val step4: Step4Summary
-)
-
-data class Step4Summary(
-    val generated: Boolean,
-    val submitted: Boolean,
-    val ackStatus: String?
 )
 
 data class DemoRunRow(

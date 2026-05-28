@@ -364,4 +364,52 @@ class DomainEventSerializationTest {
         val decoded: DomainEvent = mapper.readValue(payload)
         assertEquals(event, decoded)
     }
+
+    @Test
+    fun `serializes and deserializes exception resolved event`() {
+        val event = ExceptionResolvedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "exception-resolution",
+                occurredAt = Instant.parse("2026-05-01T12:10:00Z"),
+                schemaVersion = "ops.exception.resolve.v1",
+                regimes = setOf(RegulatoryRegime.MIFID_II)
+            ),
+            queueItemId = UUID.randomUUID(),
+            sourceEventId = UUID.randomUUID(),
+            sourceEventType = "FilingAcknowledgementReceivedEvent",
+            correlationId = UUID.randomUUID(),
+            sourceStep = ExceptionSourceStep.ACKNOWLEDGEMENT,
+            resolutionType = ExceptionResolutionType.RESUBMITTED,
+            resolvedBy = "operator",
+            note = "retry",
+            resubmitSubmissionId = UUID.randomUUID()
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
+
+    @Test
+    fun `serializes and deserializes exception resubmit requested event`() {
+        val event = ExceptionResubmitRequestedEvent(
+            metadata = EventMetadata(
+                eventId = UUID.randomUUID(),
+                correlationId = UUID.randomUUID(),
+                sourceSystem = "exception-resolution",
+                occurredAt = Instant.parse("2026-05-01T12:09:00Z"),
+                schemaVersion = "ops.exception.resubmit.req.v1",
+                regimes = setOf(RegulatoryRegime.MIFID_II)
+            ),
+            queueItemId = UUID.randomUUID(),
+            sourceEventId = UUID.randomUUID(),
+            correlationId = UUID.randomUUID(),
+            filingReadyEventId = UUID.randomUUID(),
+            forceResubmit = true
+        )
+        val payload = mapper.writeValueAsString(event)
+        val decoded: DomainEvent = mapper.readValue(payload)
+        assertEquals(event, decoded)
+    }
 }

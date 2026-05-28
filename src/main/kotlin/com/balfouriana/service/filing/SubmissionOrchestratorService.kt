@@ -10,6 +10,8 @@ import com.balfouriana.domain.FilingSubmissionFailedEvent
 import com.balfouriana.domain.FilingSubmissionRequestedEvent
 import com.balfouriana.domain.FilingSubmittedEvent
 import com.balfouriana.repository.EventStoreRepository
+import com.balfouriana.service.filing.validation.FilingSchemaValidationResult
+import com.balfouriana.service.filing.validation.FilingSchemaValidatorRegistry
 import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.UUID
@@ -18,10 +20,11 @@ import java.util.UUID
 class SubmissionOrchestratorService(
     private val eventStoreRepository: EventStoreRepository,
     private val filingRendererRegistry: FilingRendererRegistry,
+    private val filingSchemaValidatorRegistry: FilingSchemaValidatorRegistry,
     private val filingSubmissionClient: FilingSubmissionClient,
     private val filingStep4Properties: FilingStep4Properties
 ) {
-    fun process(filingReadyEvent: FilingReadyRecordEvent) {
+    fun process(filingReadyEvent: FilingReadyRecordEvent, forceResubmit: Boolean = false) {
         if (!filingStep4Properties.enabled) {
             return
         }
@@ -37,21 +40,6 @@ class SubmissionOrchestratorService(
                     filingTemplateId = rendered.templateId,
                     filingTemplateVersion = rendered.templateVersion,
                     filingOutputFormat = rendered.outputFormat
-                )
-            )
-            eventStoreRepository.append(
-                FilingGeneratedEvent(
-                    metadata = metadata(filingReadyEvent, "filing.step4.gen.ok.v1"),
-                    artifactId = filingReadyEvent.artifactId,
-                    sourceFilingReadyEventId = filingReadyEvent.metadata.eventId,
-                    sourceFilingReadyFingerprint = filingReadyEvent.outputFingerprint,
-                    recordType = filingReadyEvent.recordType,
-                    filingTemplateId = rendered.templateId,
-                    filingTemplateVersion = rendered.templateVersion,
-                    filingOutputFormat = rendered.outputFormat,
-                    outputFileName = rendered.fileName,
-                    outputChecksumSha256 = rendered.checksumSha256,
-                    outputSizeBytes = rendered.payload.toByteArray().size.toLong()
                 )
             )
             rendered
@@ -72,13 +60,56 @@ class SubmissionOrchestratorService(
             return
         }
 
+        val schemaValidation = filingSchemaValidatorRegistry.validate(rendered)
+        if (schemaValidation != null && !schemaValidation.valid) {
+            eventStoreRepository.append(
+                FilingGenerationFailedEvent(
+                    metadata = metadata(filingReadyEvent, "filing.step4.gen.fail.v1"),
+                    artifactId = filingReadyEvent.artifactId,
+                    sourceFilingReadyEventId = filingReadyEvent.metadata.eventId,
+                    sourceFilingReadyFingerprint = filingReadyEvent.outputFingerprint,
+                    recordType = filingReadyEvent.recordType,
+                    filingTemplateId = rendered.templateId,
+                    filingTemplateVersion = rendered.templateVersion,
+                    reasonCode = FilingSchemaValidationResult.REASON_CODE,
+                    message = schemaValidation.summaryMessage()
+                )
+            )
+            return
+        }
+
+        val generatedEvent = FilingGeneratedEvent(
+            metadata = metadata(filingReadyEvent, "filing.step4.gen.ok.v1"),
+            artifactId = filingReadyEvent.artifactId,
+            sourceFilingReadyEventId = filingReadyEvent.metadata.eventId,
+            sourceFilingReadyFingerprint = filingReadyEvent.outputFingerprint,
+            recordType = filingReadyEvent.recordType,
+            filingTemplateId = rendered.templateId,
+            filingTemplateVersion = rendered.templateVersion,
+            filingOutputFormat = rendered.outputFormat,
+            outputFileName = rendered.fileName,
+            outputChecksumSha256 = rendered.checksumSha256,
+            outputSizeBytes = rendered.payload.toByteArray().size.toLong()
+        )
+        eventStoreRepository.append(generatedEvent)
+
+        if (!forceResubmit && eventStoreRepository.hasSuccessfulSubmission(
+                filingReadyEvent.metadata.correlationId,
+                rendered.checksumSha256,
+                rendered.templateVersion
+            )
+        ) {
+            return
+        }
+
         val submissionId = UUID.randomUUID()
+        val generatedEventId = generatedEvent.metadata.eventId
         eventStoreRepository.append(
             FilingSubmissionRequestedEvent(
                 metadata = metadata(filingReadyEvent, "filing.step4.sub.req.v1"),
                 artifactId = filingReadyEvent.artifactId,
                 submissionId = submissionId,
-                sourceFilingGeneratedEventId = UUID.randomUUID(),
+                sourceFilingGeneratedEventId = generatedEventId,
                 recordType = filingReadyEvent.recordType,
                 channel = filingStep4Properties.submission.channel,
                 outputFileName = rendered.fileName,
@@ -94,7 +125,7 @@ class SubmissionOrchestratorService(
                     metadata = metadata(filingReadyEvent, "filing.step4.sub.ok.v1"),
                     artifactId = filingReadyEvent.artifactId,
                     submissionId = submissionId,
-                    sourceFilingGeneratedEventId = UUID.randomUUID(),
+                    sourceFilingGeneratedEventId = generatedEventId,
                     recordType = filingReadyEvent.recordType,
                     channel = filingStep4Properties.submission.channel,
                     outputFileName = rendered.fileName,
@@ -108,7 +139,7 @@ class SubmissionOrchestratorService(
                     metadata = metadata(filingReadyEvent, "filing.step4.sub.fail.v1"),
                     artifactId = filingReadyEvent.artifactId,
                     submissionId = submissionId,
-                    sourceFilingGeneratedEventId = UUID.randomUUID(),
+                    sourceFilingGeneratedEventId = generatedEventId,
                     recordType = filingReadyEvent.recordType,
                     channel = filingStep4Properties.submission.channel,
                     outputFileName = rendered.fileName,

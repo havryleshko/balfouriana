@@ -297,6 +297,46 @@ private class InMemoryEventStoreRepository : EventStoreRepository {
         return records.filter { it.eventType == eventType }
     }
 
+    override fun hasSuccessfulSubmission(
+        correlationId: UUID,
+        outputChecksumSha256: String,
+        filingTemplateVersion: String
+    ): Boolean = false
+
+    override fun findFilingSubmittedBySubmissionId(submissionId: UUID): com.balfouriana.domain.FilingSubmittedEvent? = null
+
+    override fun hasAcknowledgementForSubmission(
+        submissionId: UUID,
+        acknowledgementStatus: com.balfouriana.domain.FilingAcknowledgementStatus
+    ): Boolean = false
+
+    override fun hasAcknowledgementForExternalReference(
+        externalReference: String,
+        acknowledgementStatus: com.balfouriana.domain.FilingAcknowledgementStatus
+    ): Boolean = false
+
+    override fun findUnresolvedAcknowledgements(limit: Int): List<PersistedEventRecord> = emptyList()
+
+    override fun findByEventTypesSince(
+        eventTypes: List<String>,
+        sinceInclusive: Instant,
+        limit: Int
+    ): List<PersistedEventRecord> {
+        return records.filter { it.eventType in eventTypes && it.occurredAt >= sinceInclusive }
+            .sortedByDescending { it.occurredAt }
+            .take(limit)
+    }
+
+    override fun findLatestResolutionByQueueItemId(queueItemId: UUID): com.balfouriana.domain.ExceptionResolvedEvent? = null
+
+    override fun findResolvedQueueItemIds(queueItemIds: Collection<UUID>): Set<UUID> = emptySet()
+
+    override fun hasResolutionForQueueItem(queueItemId: UUID): Boolean = false
+
+    override fun findCorrelationIdBySubmissionId(submissionId: UUID): UUID? = null
+
+    override fun findCorrelationIdsByArtifactId(artifactId: UUID): List<UUID> = emptyList()
+
     fun eventTypes(): Set<String> = records.map { it.eventType }.toSet()
 
     fun events(): List<DomainEvent> = rawEvents.toList()

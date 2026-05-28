@@ -34,7 +34,7 @@ class IngestionStep3PipelineIntegrationTest {
     lateinit var objectMapper: ObjectMapper
 
     @Test
-    fun `csv ingest emits default step3 events and filing ready payload contract`() {
+    fun `csv ingest emits mifid step3 events and filing ready payload contract`() {
         val csv = """
             record_type,trade_id,instrument_id,trade_date,quantity,price,currency,buyer_lei,seller_lei,decision_maker_lei,execution_actor_type,venue_code,otc_indicator,waiver_indicator,short_selling_indicator,commodity_derivative_indicator,price_notation,price_currency
             TRADE,T-100,GB00B03MLX29,2026-04-22,100,10.3,GBP,5493001KJTIIGC8Y1R12,213800D1EI4B9WTWWD28,7245008N4E6Y7Z5RAA41,HUMAN,XLON,N,N,N,N,MONETARY,GBP
@@ -59,12 +59,37 @@ class IngestionStep3PipelineIntegrationTest {
             "%$artifactId%"
         ) ?: error("missing FilingReadyRecordEvent payload")
         val event = objectMapper.readValue<DomainEvent>(payload) as FilingReadyRecordEvent
-        assertEquals("step3-core-default", event.rulePackVersion.packId)
+        assertEquals("step3-mifid-transaction-rules", event.rulePackVersion.packId)
         assertEquals("rules.step3.filing-ready.v1", event.metadata.schemaVersion)
         assertTrue(event.filingReadyFields.containsKey("calculated_notional"))
-        assertFalse(event.filingReadyFields.containsKey("mifid_execution_mode"))
+        assertTrue(event.filingReadyFields.containsKey("buyer_lei"))
+        assertTrue(event.filingReadyFields.containsKey("mifid_execution_mode"))
         assertTrue(event.traceMetadata.containsKey("step3_rule_pack_version"))
         assertTrue(event.traceMetadata.containsKey("step3_applied_calculation_ids"))
+    }
+
+    @Test
+    fun `csv ingest without mifid fields uses default step3 pack`() {
+        val csv = """
+            record_type,trade_id,instrument_id,trade_date,quantity,price,currency
+            TRADE,T-300,GB00B03MLX29,2026-04-22,100,10.3,GBP
+        """.trimIndent()
+        val file = MockMultipartFile("file", "step3-default.csv", MediaType.TEXT_PLAIN_VALUE, csv.toByteArray())
+        val response = mockMvc.perform(multipart("/ingest").file(file))
+            .andExpect(status().isOk)
+            .andReturn()
+            .response
+            .contentAsString
+        val artifactId = objectMapper.readTree(response).path("artifactId").asText()
+        val correlationId = correlationIdForArtifact(UUID.fromString(artifactId))
+        waitForEventTypes(correlationId)
+        val payload = jdbcTemplate.queryForObject(
+            "select payload from event_store where event_type = 'FilingReadyRecordEvent' and payload like ? order by created_at desc limit 1",
+            String::class.java,
+            "%$artifactId%"
+        ) ?: error("missing FilingReadyRecordEvent payload")
+        val event = objectMapper.readValue<DomainEvent>(payload) as FilingReadyRecordEvent
+        assertEquals("step3-core-default", event.rulePackVersion.packId)
     }
 
     @Test

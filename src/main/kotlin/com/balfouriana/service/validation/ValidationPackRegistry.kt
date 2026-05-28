@@ -2,6 +2,7 @@ package com.balfouriana.service.validation
 
 import com.balfouriana.domain.CanonicalRecordMappedEvent
 import com.balfouriana.domain.RegulatoryRegime
+import com.balfouriana.domain.RegulatoryRegimeSelector
 import com.balfouriana.domain.ValidationPackVersion
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -34,6 +35,6 @@ class ValidationPackRegistry {
     }
 
     private fun primaryRegime(event: CanonicalRecordMappedEvent): RegulatoryRegime? {
-        return event.metadata.regimes.sortedBy { it.name }.firstOrNull()
+        return RegulatoryRegimeSelector.primaryRegime(event.metadata.regimes)
     }
 }

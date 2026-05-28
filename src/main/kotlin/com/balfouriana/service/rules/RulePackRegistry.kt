@@ -2,6 +2,7 @@ package com.balfouriana.service.rules
 
 import com.balfouriana.domain.CanonicalRecordValidatedEvent
 import com.balfouriana.domain.RegulatoryRegime
+import com.balfouriana.domain.RegulatoryRegimeSelector
 import com.balfouriana.domain.RulePackVersion
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -110,8 +111,7 @@ class RulePackRegistry {
     }
 
     private fun primaryRegime(event: CanonicalRecordValidatedEvent): RegulatoryRegime? {
-        val priority = listOf(RegulatoryRegime.EMIR, RegulatoryRegime.MIFID_II, RegulatoryRegime.AIFMD_II)
-        return priority.firstOrNull { event.metadata.regimes.contains(it) }
+        return RegulatoryRegimeSelector.primaryRegime(event.metadata.regimes)
     }
 
     private fun chooseRegimePack(regime: RegulatoryRegime, occurredAt: Instant): RulePack? {

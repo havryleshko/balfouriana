@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="MiFIRTransactionReport">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Transaction" type="TransactionType"/>
+      </xs:sequence>
+      <xs:attribute name="templateVersion" type="xs:string" use="required"/>
+      <xs:attribute name="authorityRef" type="xs:string" use="required"/>
+      <xs:attribute name="authority" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="TransactionType">
+    <xs:sequence>
+      <xs:element name="TransactionReferenceNumber" type="xs:string"/>
+      <xs:element name="InstrumentIdentification" type="xs:string"/>
+      <xs:element name="TradingDateTime" type="xs:string"/>
+      <xs:element name="Quantity" type="xs:string"/>
+      <xs:element name="Price" type="xs:string"/>
+      <xs:element name="TradingCurrency" type="xs:string"/>
+      <xs:element name="BuyerIdentificationCode" type="xs:string"/>
+      <xs:element name="SellerIdentificationCode" type="xs:string"/>
+      <xs:element name="InvestmentDecisionWithinFirm" type="xs:string"/>
+      <xs:element name="ExecutionWithinFirm" type="xs:string"/>
+      <xs:element name="TradingVenue" type="xs:string"/>
+      <xs:element name="OTCPostTradeIndicator" type="xs:string"/>
+      <xs:element name="WaiverIndicator" type="xs:string"/>
+      <xs:element name="ShortSellingIndicator" type="xs:string"/>
+      <xs:element name="CommodityDerivativeIndicator" type="xs:string"/>
+      <xs:element name="PriceNotation" type="xs:string"/>
+      <xs:element name="PriceCurrency" type="xs:string"/>
+      <xs:element name="NotionalAmount" type="xs:string"/>
+      <xs:element name="TransactionSide" type="xs:string"/>
+      <xs:element name="ExecutionMode" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

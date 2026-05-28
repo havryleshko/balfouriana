@@ -2,6 +2,7 @@ package com.balfouriana.service.parsing
 
 import com.balfouriana.domain.CanonicalRecordMappedEvent
 import com.balfouriana.domain.EventMetadata
+import com.balfouriana.domain.RegulatoryRegimeSelector
 import com.balfouriana.domain.ParseRecordRejectedEvent
 import com.balfouriana.domain.RawIngestionArtifact
 import com.balfouriana.domain.SourceRecordEnvelope
@@ -69,8 +70,12 @@ class IngestionParseAndMapService(
                     when (val mapping = canonicalRecordMapper.map(outcome.record)) {
                         is MappingOutcome.Mapped -> {
                             emitted++
+                            val regimes = RegulatoryRegimeSelector.inferRegimes(
+                                mapping.canonicalFields,
+                                mapping.recordType
+                            )
                             val event = CanonicalRecordMappedEvent(
-                                metadata = eventMetadata(artifact, "ingestion.parse.v1"),
+                                metadata = eventMetadata(artifact, "ingestion.parse.v1", regimes),
                                 artifactId = artifact.artifactId,
                                 envelope = SourceRecordEnvelope(
                                     sourceId = sourceIdFor(artifact),
@@ -175,14 +180,18 @@ class IngestionParseAndMapService(
         )
     }
 
-    private fun eventMetadata(artifact: RawIngestionArtifact, schemaVersion: String): EventMetadata {
+    private fun eventMetadata(
+        artifact: RawIngestionArtifact,
+        schemaVersion: String,
+        regimes: Set<com.balfouriana.domain.RegulatoryRegime> = emptySet()
+    ): EventMetadata {
         return EventMetadata(
             eventId = UUID.randomUUID(),
             correlationId = artifact.correlationId,
             sourceSystem = artifact.sourceSystem,
             occurredAt = Instant.now(),
             schemaVersion = schemaVersion,
-            regimes = emptySet()
+            regimes = regimes
         )
     }
 

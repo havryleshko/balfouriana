@@ -3,6 +3,7 @@ package com.balfouriana.service.filing
 import com.balfouriana.domain.FilingOutputFormat
 import com.balfouriana.domain.FilingReadyRecordEvent
 import com.balfouriana.domain.RegulatoryRegime
+import com.balfouriana.domain.RegulatoryRegimeSelector
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
@@ -50,30 +51,13 @@ class FilingRendererRegistry(
     }
 
     private fun primaryRegime(event: FilingReadyRecordEvent): RegulatoryRegime {
-        val priorities = listOf(RegulatoryRegime.EMIR, RegulatoryRegime.MIFID_II, RegulatoryRegime.AIFMD_II)
-        return priorities.firstOrNull { event.metadata.regimes.contains(it) }
+        return RegulatoryRegimeSelector.primaryRegime(event.metadata.regimes)
             ?: throw IllegalStateException("Filing-ready event has no supported regime")
     }
 
     private fun sha256(payload: String): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(payload.toByteArray(StandardCharsets.UTF_8))
         return digest.joinToString("") { "%02x".format(it) }
-    }
-}
-
-@Component
-class MifidXmlFilingRenderer : FilingRenderer {
-    override val templateId: String = "step4-mifid-xml"
-    override val templateVersion: String = "2026.05.01"
-    override val outputFormat: FilingOutputFormat = FilingOutputFormat.XML
-
-    override fun supports(regime: RegulatoryRegime): Boolean = regime == RegulatoryRegime.MIFID_II
-
-    override fun render(event: FilingReadyRecordEvent): String {
-        val fieldXml = event.filingReadyFields.toSortedMap()
-            .entries
-            .joinToString("") { "<field name=\"${escapeXml(it.key)}\">${escapeXml(it.value)}</field>" }
-        return "<mifidTransactionReport templateVersion=\"$templateVersion\">$fieldXml</mifidTransactionReport>"
     }
 }
 
